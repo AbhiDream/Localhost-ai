@@ -28,13 +28,25 @@ try:
 except ImportError:
     _tesseract_available = False
 
-try:
-    import easyocr
-    import numpy as np
-    from PIL import Image, ImageFilter, ImageEnhance
-    _ocr_reader = easyocr.Reader(['en'], gpu=False)
-except ImportError:
-    _ocr_reader = None
+# Never construct EasyOCR at import time. Reader construction can download
+# detection/recognition weights when they are missing, which prevents the
+# *entire backend* from starting in an air-gapped deployment.
+_ocr_reader = None
+_ocr_checked = False
+
+
+def get_local_ocr_reader():
+    """Load OCR only on an image request and never permit downloads."""
+    global _ocr_reader, _ocr_checked
+    if _ocr_checked:
+        return _ocr_reader
+    _ocr_checked = True
+    try:
+        import easyocr
+        _ocr_reader = easyocr.Reader(["en"], gpu=False, verbose=False, download_enabled=False)
+    except Exception:
+        _ocr_reader = None
+    return _ocr_reader
 
 from config import MODELS, OLLAMA_BASE_URL, route_model
 from routers.network_monitor import record_call
@@ -165,7 +177,30 @@ def classify_input(message: str, session_id: str = "unknown") -> dict:
             )
         }
 
-    # ── CASE 5: Comparison with other AI tools ────────────────────────────────
+    # ── CASE 5: Image generation capability ─────────────────────────────────
+    # This workbench includes local vision/OCR for analysing uploaded images,
+    # not an image generator. Keep this deterministic so a small text model
+    # cannot hallucinate visual-generation capabilities or echo prompt text.
+    image_target = r"\b(?:an?\s+)?(?:image|images|picture|pictures|visual|visuals|illustration|illustrations)\b"
+    image_action = r"\b(?:gen\w*|creat\w*|mak\w*|draw\w*)\b"
+    is_image_generation_request = bool(
+        re.search(rf"{image_action}\s+{image_target}", msg_lower)
+        or re.search(rf"{image_target}\s+(?:generation|generator)", msg_lower)
+    )
+    if is_image_generation_request:
+        return {
+            "type": "image_generation_unavailable",
+            "response": (
+                "## Image generation is not enabled in this deployment\n\n"
+                "LocalHost.AI can analyse uploaded P&IDs, engineering drawings, photos, "
+                "and scanned reports entirely on-device. This workstation does not have a "
+                "local image-generation model installed, so I will not claim to create an image. "
+                "Upload an image for analysis, or ask for a detailed visual brief for a future "
+                "approved local image-generation module."
+            )
+        }
+
+    # ── CASE 6: Comparison with other AI tools ────────────────────────────────
     comparison_triggers = [
         "better than chatgpt", "vs chatgpt", "compare with gpt",
         "vs gpt", "better than gpt", "chatgpt better", "use chatgpt",
@@ -496,7 +531,7 @@ async def chat_stream(req: ChatRequest, request: Request):
                         raw_text = pytesseract.image_to_string(temp_img_path, config=custom_config)
                         os.unlink(temp_img_path)
                         print(f"[DEBUG] Pytesseract raw OCR:\n{raw_text}")
-                    elif _ocr_reader is not None:
+                    elif get_local_ocr_reader() is not None:
                         results = _ocr_reader.readtext(arr)
                         raw_text = "\n".join([r[1] for r in results if r[2] > 0.25])
                         print(f"[DEBUG] EasyOCR raw output:\n{raw_text}")

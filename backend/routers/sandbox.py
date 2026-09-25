@@ -3,6 +3,7 @@ Code sandbox — executes generated Python scripts in an isolated subprocess.
 Timeout-limited, output captured. No network access.
 """
 import asyncio
+import ast
 import os
 import sys
 import uuid
@@ -34,6 +35,25 @@ class ExecuteResponse(BaseModel):
     external_calls: int = 0
 
 
+def validate_sandbox_code(code: str) -> str | None:
+    """Reject unsafe or non-deterministic code before local execution."""
+    try:
+        tree = ast.parse(code)
+    except SyntaxError as exc:
+        return f"Syntax validation failed: {exc.msg} (line {exc.lineno})."
+
+    blocked_modules = {"socket", "requests", "urllib", "http", "httpx", "ftplib", "telnetlib", "subprocess"}
+    blocked_calls = {"input", "open", "eval", "exec", "compile", "__import__"}
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            modules = [alias.name.split(".")[0] for alias in node.names] if isinstance(node, ast.Import) else [(node.module or "").split(".")[0]]
+            if any(module in blocked_modules for module in modules):
+                return "Sandbox policy blocked a network or process-control import."
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in blocked_calls:
+            return f"Sandbox policy blocked {node.func.id}(). Use fixed values and pure calculation functions."
+    return None
+
+
 async def run_code_sandboxed(code: str, timeout: int = 30) -> dict:
     """Run Python code in a subprocess. Reusable by agent pipeline."""
     record_call("sandbox_local", f"execute: {code[:60]}")
@@ -41,11 +61,12 @@ async def run_code_sandboxed(code: str, timeout: int = 30) -> dict:
     # A model may still ignore the prompt. Reject interactive programs before
     # launching them so the UI gives a useful deterministic error instead of a
     # confusing EOF failure or timeout.
-    if re.search(r"(?<![\w.])input\s*\(", code):
+    policy_error = validate_sandbox_code(code)
+    if policy_error:
         return {
             "status": "error",
             "stdout": "",
-            "stderr": "Interactive input() is not supported in the headless sandbox. Use fixed sample values or function parameters.",
+            "stderr": policy_error,
             "return_code": -1,
             "script_file": "",
             "external_calls": 0,

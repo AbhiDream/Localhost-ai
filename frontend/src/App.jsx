@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import ChatPanel from './components/ChatPanel'
 import NetworkMonitor from './components/NetworkMonitor'
@@ -14,13 +14,29 @@ const INITIAL_SESSIONS = [
 function genId() { return '#AC-' + Math.floor(1000 + Math.random() * 9000) }
 
 export default function App() {
-  const [sessions, setSessions] = useState(INITIAL_SESSIONS)
-  const [activeId, setActiveId] = useState('#AC-9942')
+  const [sessions, setSessions] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mrpl_sessions')
+      if (saved) return JSON.parse(saved)
+    } catch (e) {}
+    return INITIAL_SESSIONS
+  })
+  
+  const [activeId, setActiveId] = useState(sessions[0]?.id || '#AC-9942')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [settingsOpen, setSettingsOpen] = useState(true)
   const [activeModel, setActiveModel] = useState('Phi-3.5 Mini')
 
+  useEffect(() => {
+    localStorage.setItem('mrpl_sessions', JSON.stringify(sessions))
+  }, [sessions])
+
   const activeSession = sessions.find(s => s.id === activeId) || sessions[0]
+  const fallbackModel = {
+    'phi3.5': 'Phi-3.5 Mini',
+    'qwen2.5': 'Qwen2.5-Coder 3B',
+    'moondream2': 'Moondream 2',
+  }[activeSession?.model] || 'Phi-3.5 Mini'
 
   const newChat = () => {
     const id = genId()
@@ -30,6 +46,23 @@ export default function App() {
 
   const selectSession = (id) => setActiveId(id)
 
+  const deleteSession = (id, e) => {
+    e.stopPropagation()
+    setSessions(prev => {
+      const updated = prev.filter(s => s.id !== id)
+      if (updated.length === 0) {
+        const newId = genId()
+        setActiveId(newId)
+        return [{ id: newId, title: 'New Session', timeAgo: 'now', model: 'phi3.5', active: true }]
+      }
+      if (activeId === id) {
+        setActiveId(updated[0].id)
+      }
+      return updated
+    })
+    localStorage.removeItem(`chat_messages_${id}`)
+  }
+
   return (
     <div className="h-screen flex overflow-hidden bg-surface font-sans">
       {/* Sidebar */}
@@ -38,6 +71,7 @@ export default function App() {
         activeId={activeId}
         onSelect={selectSession}
         onNew={newChat}
+        onDelete={deleteSession}
         open={sidebarOpen}
         onToggle={() => setSidebarOpen(o => !o)}
       />
@@ -64,13 +98,8 @@ export default function App() {
             {/* Active model pill */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-container text-accent-text text-[12px] font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              {activeModel}
+              {activeModel || fallbackModel}
             </div>
-
-            <button className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-full border border-border bg-surface-card text-text-secondary hover:bg-surface-inset hover:text-text-primary text-[13px] font-medium transition-all">
-              <span className="material-symbols-outlined text-[16px]">sync</span>
-              Update
-            </button>
 
             <button
               onClick={() => setSettingsOpen(o => !o)}

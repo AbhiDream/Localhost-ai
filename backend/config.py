@@ -2,6 +2,14 @@
 Central configuration for the MRPL AI Workbench.
 All inference is routed to Ollama running on localhost.
 """
+import os
+import re
+
+# This workbench must never attempt a Hugging Face/model download at runtime.
+# Models are provisioned before deployment; unavailable local OCR/embedding
+# models fail their individual request safely rather than blocking server boot.
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
 OLLAMA_BASE_URL = "http://localhost:11434"
 
@@ -47,7 +55,8 @@ MODELS = {
 # Router keyword map — simple intent classifier
 ROUTING_KEYWORDS = {
     "code": [
-        "python", "script", "function", "code", "calculate", "lmtd", "formula",
+        "python", "script", "function", "code", "calculate", "calculator", "calculation",
+        "heat duty", "lmtd", "formula",
         "algorithm", "compute", "math", "equation", "program", "def ", "import ",
     ],
     "vision": [
@@ -71,7 +80,7 @@ TASK_KEYWORDS = {
         "spreadsheet", "excel", "xlsx",
     ],
     "code": [
-        "code", "python", "script", "calculate", "lmtd", "computation",
+        "code", "python", "script", "calculate", "calculator", "calculation", "heat duty", "lmtd", "computation",
         "algorithm", "function", "engineering calculation", "formula",
         "program", "compute", "def ", "import ",
     ],
@@ -110,6 +119,28 @@ def route_model(prompt: str, force_model: str | None = None) -> str:
     return best if scores[best] > 0 else "reasoning"
 
 
+def requires_rag_with_attachment(prompt: str) -> bool:
+    """Return True only when an attached file must be supplemented by the KB.
+
+    A plain PDF summary or extraction must stay source-bound to the attachment.
+    RAG is useful only when the user explicitly asks to compare it with a local
+    standard/manual or search the organization's indexed knowledge base.
+    """
+    normalized = prompt.lower()
+
+    # A document identifier is an explicit request for that local source.
+    if re.search(r"\b(?:oisd|api|asme|is)\s*[- ]?\s*\d", normalized):
+        return True
+
+    retrieval_requests = (
+        "knowledge base", "internal manual", "our manual", "our sop",
+        "related standard", "applicable standard", "find relevant standard",
+        "compare", "comparison", "cross reference", "cross-reference",
+        "according to", "as per", "look up", "lookup", "search the manuals",
+    )
+    return any(phrase in normalized for phrase in retrieval_requests)
+
+
 def classify_task(prompt: str, has_image: bool = False, has_pdf: bool = False) -> dict:
     """
     Classify user request into task type and determine which agent phases to run.
@@ -135,11 +166,11 @@ def classify_task(prompt: str, has_image: bool = False, has_pdf: bool = False) -
 
     # Determine phases and model for each task type
     phase_map = {
+        # An attached inspection report is its own source of truth. Retrieval
+        # is added below only for an explicitly requested local standard/manual;
+        # otherwise unrelated KB chunks can contaminate a source-bound report.
         "document":  {"phases": ["reason", "artifact"], "model_key": "reasoning"},
-        # Demo-safe mode: generate code locally but do not execute it. This
-        # avoids launching a subprocess and keeps the sovereignty dashboard
-        # focused on inference and knowledge retrieval only.
-        "code":      {"phases": ["reason"], "model_key": "code"},
+        "code":      {"phases": ["reason", "execute"], "model_key": "code"},
         "knowledge": {"phases": ["retrieve", "reason"],            "model_key": "reasoning"},
         "vision":    {"phases": ["extract", "reason"],             "model_key": "vision"},
         "general":   {"phases": ["reason"],                        "model_key": "reasoning"},
@@ -153,6 +184,12 @@ def classify_task(prompt: str, has_image: bool = False, has_pdf: bool = False) -
     # Dynamically inject RAG only if knowledge keywords are present (saves 30s model swap time)
     if scores["knowledge"] > 0 and "retrieve" not in result["phases"]:
         result["phases"].insert(0, "retrieve")
+
+    # A bare attached-PDF summary should never pull loosely similar content
+    # from Chroma. That gives confusing CDU/OISD citations and can contaminate
+    # a faithful summary. Retain RAG only when the prompt expressly asks for it.
+    if has_pdf and not requires_rag_with_attachment(prompt):
+        result["phases"] = [phase for phase in result["phases"] if phase != "retrieve"]
 
     # If file attached, prepend extract phase
     if (has_image or has_pdf) and "extract" not in result["phases"]:

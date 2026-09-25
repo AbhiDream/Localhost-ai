@@ -21,10 +21,10 @@ const mdComponents = {
   h1: ({ children }) => <h1 className="text-text-primary font-bold text-[20px] mt-5 mb-3 font-headline-md">{children}</h1>,
   h2: ({ children }) => <h2 className="text-text-primary font-semibold text-[17px] mt-4 mb-2 font-headline-sm">{children}</h2>,
   h3: ({ children }) => <h3 className="text-text-primary font-medium text-[15px] mt-3 mb-2">{children}</h3>,
-  p:  ({ children }) => <p className="mb-3 text-[15px] text-text-secondary leading-relaxed">{children}</p>,
-  ul: ({ children }) => <ul className="mb-3 pl-5 space-y-1 list-disc text-text-secondary">{children}</ul>,
-  ol: ({ children }) => <ol className="mb-3 pl-5 space-y-1 list-decimal text-text-secondary">{children}</ol>,
-  li: ({ children }) => <li className="text-[14.5px] leading-relaxed">{children}</li>,
+  p:  ({ children }) => <p className="mb-3 text-[15px] text-black leading-relaxed">{children}</p>,
+  ul: ({ children }) => <ul className="mb-3 pl-5 space-y-1 list-disc text-black">{children}</ul>,
+  ol: ({ children }) => <ol className="mb-3 pl-5 space-y-1 list-decimal text-black">{children}</ol>,
+  li: ({ children }) => <li className="text-[14.5px] leading-relaxed text-black">{children}</li>,
   strong: ({ children }) => <strong className="text-text-primary font-semibold">{children}</strong>,
   em: ({ children }) => <em className="text-text-primary italic">{children}</em>,
   code: ({ inline, children, className }) => {
@@ -69,18 +69,48 @@ const PRESET_PILLS = [
 ]
 
 export default function ChatPanel({ session, onActiveModelChange }) {
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`chat_messages_${session.id}`)
+      if (saved) return JSON.parse(saved)
+    } catch (e) {}
+    return []
+  })
+
+  useEffect(() => {
+    localStorage.setItem(`chat_messages_${session.id}`, JSON.stringify(messages))
+  }, [messages, session.id])
   const [input, setInput] = useState('')
   const [generating, setGenerating] = useState(false)
   const [docType, setDocType] = useState('report')
   const [attachedFile, setAttachedFile] = useState(null)
   const bottomRef = useRef(null)
+  const messagesScrollRef = useRef(null)
+  const shouldAutoScrollRef = useRef(true)
+  const abortControllerRef = useRef(null)
+  const stoppedByUserRef = useRef(false)
   const inputRef = useRef(null)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    // Do not force the reader back to the newest token while they are
+    // reviewing an earlier part of a streaming answer.
+    if (shouldAutoScrollRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+    }
   }, [messages])
+
+  const handleMessagesScroll = (event) => {
+    const pane = event.currentTarget
+    const distanceFromBottom = pane.scrollHeight - pane.scrollTop - pane.clientHeight
+    shouldAutoScrollRef.current = distanceFromBottom < 96
+  }
+
+  const stopGeneration = () => {
+    if (!generating) return
+    stoppedByUserRef.current = true
+    abortControllerRef.current?.abort()
+  }
 
   const handlePaste = (e) => {
     if (e.clipboardData.files.length > 0) handleFile(e.clipboardData.files[0])
@@ -99,6 +129,8 @@ export default function ChatPanel({ session, onActiveModelChange }) {
 
     const currentAttachment = attachedFile
     setAttachedFile(null)
+    shouldAutoScrollRef.current = true
+    stoppedByUserRef.current = false
 
     const userMsg = { id: Date.now(), role: 'user', content: text, attachment: currentAttachment }
     setMessages(prev => [...prev, userMsg])
@@ -111,6 +143,18 @@ export default function ChatPanel({ session, onActiveModelChange }) {
       model: 'Phi-3.5 Mini', tokens: 0, latency: 0, phases: [], artifacts: [], sandboxResults: [],
     }])
 
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+    let idleTimer
+    const armIdleTimeout = () => {
+      window.clearTimeout(idleTimer)
+      // A healthy SSE request immediately emits metadata/progress. If a Vite
+      // or backend restart leaves an old browser stream hanging, recover the
+      // composer instead of showing "Processing..." forever.
+      idleTimer = window.setTimeout(() => controller.abort(), 45000)
+    }
+
+    armIdleTimeout()
     try {
       const body = { message: text }
       if (currentAttachment?.type?.startsWith('image/')) {
@@ -123,7 +167,15 @@ export default function ChatPanel({ session, onActiveModelChange }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal: controller.signal,
       })
+
+      if (!resp.ok) {
+        throw new Error(`Local service returned HTTP ${resp.status}`)
+      }
+      if (!resp.body) {
+        throw new Error('Local service did not return a response stream')
+      }
 
       const reader = resp.body.getReader()
       const decoder = new TextDecoder()
@@ -133,6 +185,7 @@ export default function ChatPanel({ session, onActiveModelChange }) {
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
+        armIdleTimeout()
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
         buffer = lines.pop()
@@ -143,6 +196,10 @@ export default function ChatPanel({ session, onActiveModelChange }) {
             const data = JSON.parse(line.slice(6))
 
             if (data.type === 'meta' || data.type === 'phase') {
+              if (data.model_display) {
+                onActiveModelChange?.(data.model_display)
+                setMessages(prev => prev.map(m => m.id === aiId ? { ...m, model: data.model_display } : m))
+              }
               if (data.type === 'phase') {
                 setMessages(prev => prev.map(m => m.id === aiId ? { ...m, phases: [...m.phases, data.phase] } : m))
               }
@@ -162,48 +219,45 @@ export default function ChatPanel({ session, onActiveModelChange }) {
       }
       setMessages(prev => prev.map(m => m.id === aiId ? { ...m, streaming: false, tokens, latency } : m))
     } catch (e) {
-      setMessages(prev => prev.map(m => m.id === aiId ? { ...m, content: `**Error:** ${e.message}`, streaming: false } : m))
-    }
-    setGenerating(false)
-  }
-
-  const generateDoc = async () => {
-    const text = input.trim()
-    if (!text || generating) return
-    setGenerating(true)
-    setAttachedFile(null)
-    const userMsg = { id: Date.now(), role: 'user', content: `📄 Generate ${docType.toUpperCase()}: ${text}` }
-    setMessages(prev => [...prev, userMsg])
-    setInput('')
-    
-    const aiId = Date.now() + 1
-    setMessages(prev => [...prev, {
-      id: aiId, role: 'ai', content: '', streaming: true, artifacts: [], sandboxResults: [],
-    }])
-    try {
-      const r = await fetch('/api/documents/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: text, doc_type: docType, title: 'MRPL Document', equipment_id: 'EQ-001' }),
-      })
-      const data = await r.json()
+      const wasStoppedByUser = e.name === 'AbortError' && stoppedByUserRef.current
+      const message = e.name === 'AbortError'
+        ? (wasStoppedByUser
+          ? 'Generation stopped locally.'
+          : 'The local service stopped responding. The server may have restarted; please send the prompt again.')
+        : e.message
       setMessages(prev => prev.map(m => m.id === aiId ? {
         ...m,
-        content: `✅ Document generated successfully.`,
+        // Keep everything already received when the user deliberately stops
+        // a stream; replacing it with an error would make Stop destructive.
+        content: wasStoppedByUser
+          ? `${m.content}${m.content ? '\n\n' : ''}> Generation stopped locally.`
+          : `**Error:** ${message}`,
         streaming: false,
-        artifacts: [{ file: data.file, download_url: data.download_url, doc_type: data.doc_type }],
       } : m))
-    } catch (e) {
-      setMessages(prev => prev.map(m => m.id === aiId ? { ...m, content: `**Error:** ${e.message}`, streaming: false } : m))
+    } finally {
+      window.clearTimeout(idleTimer)
+      if (abortControllerRef.current === controller) abortControllerRef.current = null
+      setGenerating(false)
     }
-    setGenerating(false)
+  }
+
+  const generateDoc = () => {
+    const text = input.trim()
+    if (!text || generating) return
+    const requestPrefix = {
+      report: 'Create an evidence-grounded inspection report as a Word document. ',
+      script: 'Create a Python file. ',
+    }[docType] || 'Create an evidence-grounded Word document. '
+    // Use the agent workflow so attachments, RAG citations, and the evidence
+    // gate are preserved; the legacy direct document endpoint has no context.
+    sendMessage(`${requestPrefix}${text}`)
   }
 
   return (
     <section className="flex-1 flex flex-col bg-surface min-w-0 relative">
       
       {/* Scrollable messages area */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-12 pt-8 pb-32">
+      <div ref={messagesScrollRef} onScroll={handleMessagesScroll} className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-12 pt-8 pb-32">
         {messages.length === 0 ? (
           <div className="max-w-4xl mx-auto mt-6 animate-fade-in-up">
             {/* Status Banner */}
@@ -397,17 +451,25 @@ export default function ChatPanel({ session, onActiveModelChange }) {
               <span className="material-symbols-outlined text-[22px]">mic</span>
             </button>
             
-            <button
-              onClick={() => sendMessage()}
-              disabled={generating || !input.trim()}
-              className="ml-1 w-10 h-10 rounded-full bg-accent hover:bg-accent-hover text-accent-text flex items-center justify-center transition-colors disabled:opacity-50 shadow-sm"
-            >
-              {generating ? (
-                <span className="w-4 h-4 border-2 border-accent-text border-t-transparent rounded-full animate-spin" />
-              ) : (
+            {generating ? (
+              <button
+                onClick={stopGeneration}
+                className="ml-1 h-10 px-3 rounded-full bg-error text-white hover:bg-red-700 flex items-center gap-1.5 transition-colors shadow-sm text-[12px] font-semibold"
+                title="Stop generating"
+              >
+                <span className="material-symbols-outlined text-[18px]">stop_circle</span>
+                Stop
+              </button>
+            ) : (
+              <button
+                onClick={() => sendMessage()}
+                disabled={!input.trim()}
+                className="ml-1 w-10 h-10 rounded-full bg-accent hover:bg-accent-hover text-accent-text flex items-center justify-center transition-colors disabled:opacity-50 shadow-sm"
+                title="Send message"
+              >
                 <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
-              )}
-            </button>
+              </button>
+            )}
           </div>
         </div>
       </div>

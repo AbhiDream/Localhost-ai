@@ -14,8 +14,11 @@ import asyncio
 import base64
 import io
 import json
+import math
 import os
 import re
+import subprocess
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -135,7 +138,7 @@ async def ollama_generate_sync(prompt: str, model_tag: str, temperature: float =
 # ── Phase: EXTRACT ────────────────────────────────────────────
 
 async def phase_extract_pdf(pdf_b64: str) -> str:
-    """Extract text from a base64-encoded PDF."""
+    """Extract text from a PDF, with on-device OCR for scanned pages."""
     import pdfplumber
     import tempfile
 
@@ -151,10 +154,46 @@ async def phase_extract_pdf(pdf_b64: str) -> str:
                 text = page.extract_text()
                 if text:
                     all_text.append(text)
+
+            # Inspection reports are often scans, so text extraction can be
+            # empty even though the report visibly contains findings. Run OCR
+            # in a bounded child process: a heavy OCR job must never terminate
+            # the live FastAPI service and cause a frontend 502.
+            if len("\n".join(all_text).strip()) < 80:
+                try:
+                    worker = Path(__file__).with_name("pdf_ocr_worker.py")
+                    completed = await asyncio.to_thread(
+                        subprocess.run,
+                        [sys.executable, "-E", str(worker), temp_path],
+                        capture_output=True,
+                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
+                        timeout=45,
+                        check=False,
+                    )
+                    if completed.returncode == 0:
+                        # Some OCR backends print a CPU status line before
+                        # our JSON result. Read the final valid JSON line.
+                        for line in reversed(completed.stdout.splitlines()):
+                            try:
+                                payload = json.loads(line)
+                            except json.JSONDecodeError:
+                                continue
+                            if payload.get("text"):
+                                return payload["text"]
+                            break
+                except Exception:
+                    # The evidence gate below will safely decline factual
+                    # drafting if local OCR is unavailable or finds no text.
+                    pass
     finally:
         os.unlink(temp_path)
 
-    return "\n".join(all_text)
+    return "\n\n".join(
+        f"[Source: attached PDF, page {index}]\n{text}"
+        for index, text in enumerate(all_text, start=1)
+    )
 
 
 async def phase_extract_image(image_b64: str) -> str:
@@ -175,7 +214,7 @@ async def phase_extract_image(image_b64: str) -> str:
         img = ImageEnhance.Sharpness(img).enhance(1.5)
 
         arr = np.array(img)
-        reader = easyocr.Reader(["en"], gpu=False, verbose=False)
+        reader = easyocr.Reader(["en"], gpu=False, verbose=False, download_enabled=False)
         results = reader.readtext(arr)
         extracted = "\n".join([r[1] for r in results if r[2] > 0.25])
         return extracted if extracted else "[No text detected in image]"
@@ -187,6 +226,13 @@ async def phase_extract_image(image_b64: str) -> str:
 
 async def phase_retrieve(query: str, n_results: int = 3) -> tuple[str, list]:
     """Search knowledge base for relevant context. Returns (context_str, chunks)."""
+    # A named standard is a document identifier, not a semantic hint. Resolve
+    # it from the bundled local source *before* vector search so OISD-116 can
+    # never be answered from OISD-118 or another similar standard.
+    standard = requested_standard(query)
+    if standard:
+        return local_text_retrieve(query, n_results, source_filter=standard)
+
     try:
         from routers.rag import get_collection, embed_text
 
@@ -213,18 +259,29 @@ async def phase_retrieve(query: str, n_results: int = 3) -> tuple[str, list]:
         if not docs:
             return local_text_retrieve(query, n_results)
 
-        # For an explicitly named standard, use the best local text passage.
-        # Vector similarity can retrieve the standard's introduction instead of
-        # the relevant section (for example tanks instead of foam systems).
-        standard = re.search(r"\b(OISD[- ]?\d+|API[- ]?\d+|ASME[- ]?[\w.]+|IS[- ]?\d+)\b", query, re.I)
-        if standard:
-            fallback_context, fallback_chunks = local_text_retrieve(query, n_results)
-            if fallback_chunks:
-                return fallback_context, fallback_chunks
+        # A vector store always returns its nearest neighbours, even when none
+        # are genuinely relevant. Require local lexical evidence as a second
+        # gate, so a question such as "current market price of crude oil" is
+        # not treated as supported merely because a manual mentions crude oil.
+        meaningful_terms = _meaningful_query_terms(query)
+        minimum_overlap = max(1, math.ceil(len(meaningful_terms) / 2))
+        relevant = [
+            (document, metadata, distance)
+            for document, metadata, distance in zip(docs, metas, dists)
+            if sum(term in document.lower() for term in meaningful_terms) >= minimum_overlap
+        ]
+        if not relevant:
+            return "", []
+        docs, metas, dists = map(list, zip(*relevant))
 
-        context_str = "\n\n---\n\n".join(docs)
+        # Preserve provenance on every vector-store chunk. The model receives
+        # a source marker, not an anonymous paragraph it can misattribute.
+        context_str = "\n\n---\n\n".join(
+            f"[Source: {m.get('source', 'unknown')}{f', page {m.get('page')}' if m.get('page') else ''}]\n{d}"
+            for d, m in zip(docs, metas)
+        )
         chunks = [
-            {"text": d[:200], "distance": round(dist, 4), "source": m.get("source", "unknown")}
+            {"text": d[:200], "distance": round(dist, 4), "source": m.get("source", "unknown"), "page": m.get("page")}
             for d, dist, m in zip(docs, dists, metas)
         ]
         return context_str, chunks
@@ -232,45 +289,136 @@ async def phase_retrieve(query: str, n_results: int = 3) -> tuple[str, list]:
         return local_text_retrieve(query, n_results)
 
 
-def local_text_retrieve(query: str, n_results: int = 3) -> tuple[str, list]:
-    """Offline lexical fallback for bundled standards when vector search is unavailable.
+def requested_standard(query: str) -> str | None:
+    """Return a canonical standard identifier such as ``OISD-116``."""
+    match = re.search(r"\b(OISD|API|IS)\s*[- ]?\s*(\d{2,4})\b", query, re.I)
+    if not match:
+        return None
+    return f"{match.group(1).upper()}-{match.group(2)}"
 
-    This makes named-standard queries reliable even if Chroma was moved or the
-    embedding model was not loaded after an air-gapped restart.
-    """
+
+def _meaningful_query_terms(query: str) -> set[str]:
+    """Extract content words used to decide if a RAG match is really relevant."""
+    stop_words = {
+        "about", "according", "after", "also", "and", "are", "can", "could",
+        "does", "for", "from", "have", "how", "into", "is", "local", "me",
+        "of", "on", "please", "should", "tell", "that", "the", "this", "to",
+        "what", "when", "where", "which", "with", "would", "you", "your",
+    }
+    return {
+        term for term in re.findall(r"[a-z0-9]+", query.lower())
+        if len(term) > 2 and term not in stop_words
+    }
+
+
+def _source_key(value: str) -> str:
+    return re.sub(r"[^A-Z0-9]+", "-", value.upper()).strip("-")
+
+
+def _source_passages(text: str) -> list[tuple[str | None, str]]:
+    """Split locally extracted standards into page-aware passages."""
+    pieces = re.split(r"(?=---\s*PAGE\s*\d+[^\n]*---)", text, flags=re.I)
+    passages = []
+    for piece in pieces:
+        page_match = re.search(r"---\s*PAGE\s*(\d+)[^\n]*---", piece, flags=re.I)
+        page = page_match.group(1) if page_match else None
+        cleaned = re.sub(r"---\s*PAGE\s*\d+[^\n]*---", "", piece, flags=re.I).strip()
+        if cleaned:
+            passages.append((page, cleaned))
+    return passages or [(None, text)]
+
+
+def local_text_retrieve(
+    query: str, n_results: int = 3, source_filter: str | None = None,
+) -> tuple[str, list]:
+    """Offline lexical retrieval with optional exact source enforcement."""
     docs_dir = Path(__file__).resolve().parents[2] / "downloaded_docs"
     if not docs_dir.is_dir():
         return "", []
 
-    terms = {t for t in re.findall(r"[a-z0-9]+", query.lower()) if len(t) > 2}
+    terms = _meaningful_query_terms(query)
+    minimum_overlap = max(1, math.ceil(len(terms) / 2))
+    paths = list(docs_dir.glob("*.txt"))
+    if source_filter:
+        source_key = _source_key(source_filter)
+        paths = [path for path in paths if source_key in _source_key(path.stem)]
+        if not paths:
+            return "", []
+
     candidates = []
-    for path in docs_dir.glob("*.txt"):
+    for path in paths:
         try:
             text = path.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
-        score = sum(text.lower().count(term) for term in terms)
-        score += sum(5 for term in terms if term in path.stem.lower())
-        if score:
-            candidates.append((score, path, text))
+        for page, passage in _source_passages(text):
+            matching_terms = sum(term in passage.lower() for term in terms)
+            score = sum(passage.lower().count(term) for term in terms)
+            score += sum(5 for term in terms if term in path.stem.lower())
+            if matching_terms >= minimum_overlap or source_filter:
+                candidates.append((score, path, page, passage))
 
     if not candidates:
         return "", []
     selected = sorted(candidates, key=lambda item: item[0], reverse=True)[:n_results]
     result_chunks = []
-    for score, path, text in selected:
-        words = text.split()
-        # Return the best *passage*, not simply the first mention in a manual.
-        # E.g. OISD-116 mentions water tanks on page 1 but fixed foam systems
-        # on page 4; a query containing both must get the foam passage.
-        passages = [words[i:i + 220] for i in range(0, len(words), 140)] or [[]]
+    for score, path, page, passage in selected:
+        words = passage.split()
+        # Return the best local paragraph window, not the introduction.
+        windows = [words[i:i + 220] for i in range(0, len(words), 140)] or [[]]
         def passage_score(passage):
             passage_text = " ".join(passage).lower()
             return sum(passage_text.count(term) for term in terms)
-        excerpt = " ".join(max(passages, key=passage_score))
-        result_chunks.append({"text": excerpt, "distance": 0.0, "source": path.name})
-    context = "\n\n---\n\n".join(item["text"] for item in result_chunks)
+        excerpt = " ".join(max(windows, key=passage_score))
+        result_chunks.append({"text": excerpt, "distance": 0.0, "source": path.name, "page": page})
+    context = "\n\n---\n\n".join(
+        f"[Source: {item['source']}{f', page {item['page']}' if item['page'] else ''}]\n{item['text']}"
+        for item in result_chunks
+    )
     return context, result_chunks
+
+
+def named_standard_evidence_response(standard: str, chunks: list[dict]) -> str:
+    """Return only local excerpts for a specifically named standard.
+
+    Standard-number questions are high-stakes knowledge lookups. An extractive
+    answer is more useful (and safer) than a fluent answer that may blend in a
+    nearby standard, model memory, or an unsupported design requirement.
+    """
+    excerpts = []
+    for chunk in chunks:
+        page = f", page {chunk['page']}" if chunk.get("page") else ""
+        excerpts.append(f"[Source: {chunk['source']}{page}]\n{chunk['text']}")
+    return (
+        f"## {standard} — local source evidence\n\n"
+        "The following is retrieved from the exact locally indexed standard. "
+        "No other standard or external source was used.\n\n"
+        + "\n\n---\n\n".join(excerpts)
+    )
+
+
+def grounded_comparison_prompt(
+    request: str, attached_evidence: str, standard_evidence: str, standard: str,
+) -> str:
+    """Compare an attachment against one exact local standard without blending sources."""
+    return (
+        "You are LocalHost.AI performing a source-bound comparison. Compare ONLY "
+        "the attached document evidence with the exact local standard evidence below. "
+        "Do not use model memory, other standards, or unstated domain knowledge. "
+        "Do not claim compliance/non-compliance unless both sources explicitly support it. "
+        "If the documents concern different subjects or a fact is absent, state "
+        "'Not established from the supplied sources.'\n\n"
+        f"ATTACHED DOCUMENT EVIDENCE:\n{attached_evidence}\n\n"
+        f"EXACT {standard} LOCAL EVIDENCE:\n{standard_evidence}\n\n"
+        f"REQUEST: {request}\n\n"
+        "Return exactly these sections:\n"
+        "## Scope of each source\n"
+        "## Common or related points\n"
+        "## Differences / applicability limits\n"
+        "## Conclusion\n\n"
+        "Keep the comparison under 220 words; prefer an applicability limit over speculation.\n\n"
+        "Every factual sentence must include its relevant [Source: ..., page ...] marker."
+    )
 
 
 # ── Phase: EXECUTE ────────────────────────────────────────────
@@ -297,10 +445,13 @@ def make_general_prompt(user_message: str, context_block: str = "") -> str:
     )
     if context_block:
         return (
-            f"{base}\n\nKnowledge-base context (use it as the factual source; "
-            "say when it does not contain the answer):\n"
+            f"{base}\n\nYou must use ONLY the evidence below for factual claims. "
+            "Never combine sources or fill missing details from general knowledge. "
+            "For every finding, include its [Source: filename, page] marker. "
+            "If evidence is absent, write 'Not available in the supplied source.'\n\n"
+            "Evidence:\n"
             f"{context_block}\n\nUser request: {user_message}\n\n"
-            "Give a structured answer and cite source filename/page when available."
+            "Give a concise, structured, evidence-grounded answer."
         )
     return f"{base}\n\nUser request: {user_message}"
 
@@ -315,7 +466,88 @@ def greeting_response(message: str) -> str | None:
             "I can search local standards, analyze documents and drawings, generate reports, "
             "or run engineering code entirely on this machine. How can I help?"
         )
+    if normalized in {"thanks", "thank you", "okay", "ok", "got it", "understood"}:
+        return "You’re welcome. I’m ready for a local document, standards, vision, or coding task."
+    if normalized in {"how are you", "are you working", "are you there", "system status"}:
+        return "LocalHost.AI is ready. It uses only local services and does not send your prompt or files outside this machine."
     return None
+
+
+def capability_response(message: str) -> str | None:
+    """Keep common product questions deterministic and concise."""
+    normalized = re.sub(r"\s+", " ", message.lower()).strip()
+    triggers = (
+        "who are you", "what are you", "what can you do", "what do you do",
+        "tell me about yourself", "what is localhost.ai", "what is localhost ai",
+    )
+    if not any(trigger in normalized for trigger in triggers):
+        return None
+    return (
+        "## LocalHost.AI capabilities\n\n"
+        "- Search approved local standards and SOPs with source citations\n"
+        "- Summarize uploaded PDFs and inspection reports locally\n"
+        "- Analyze uploaded drawings, P&IDs, photos, and scans\n"
+        "- Draft internal reports and write Python engineering utilities\n\n"
+        "All inference and document handling remain on this workstation."
+    )
+
+
+def no_local_evidence_response(message: str) -> str:
+    """Fail closed for factual questions outside the approved local sources."""
+    return (
+        "## Local evidence not available\n\n"
+        "I could not find approved local source material for this request, so I will not guess "
+        "or generate an unverified factual answer. Attach the relevant document, or ask about an "
+        "indexed local standard/SOP. I can still write code or prepare a draft when you provide the "
+        "required inputs."
+    )
+
+
+def live_data_response(message: str) -> str | None:
+    """Decline information that an air-gapped workbench cannot verify live."""
+    normalized = re.sub(r"\s+", " ", message.lower()).strip()
+    live_data_phrases = (
+        "current price", "market price", "stock price", "share price",
+        "exchange rate", "latest news", "breaking news", "weather forecast",
+        "weather today", "live score", "current score", "current election",
+    )
+    if not any(phrase in normalized for phrase in live_data_phrases):
+        return None
+    return (
+        "## Live data is unavailable by design\n\n"
+        "LocalHost.AI is air-gapped and does not access the internet or external market feeds. "
+        "I cannot verify live prices, news, weather, or scores. Upload an approved local report "
+        "if you need analysis of a specific dataset."
+    )
+
+
+def image_generation_response(message: str) -> str | None:
+    """Answer image-creation requests without sending them to a text model.
+
+    This installation contains local vision/OCR models for understanding an
+    uploaded scan, photograph or P&ID.  It does not ship an image-generation
+    model, so forwarding the request to a general text model only invites it
+    to invent capabilities or echo unrelated prompt text.
+    """
+    normalized = re.sub(r"\s+", " ", message.lower()).strip()
+    image_target = r"\b(?:an?\s+)?(?:image|images|picture|pictures|visual|visuals|illustration|illustrations)\b"
+    # ``gen\w*`` intentionally catches ordinary spelling slips such as
+    # "genarte image". It is paired with an explicit visual target, so it
+    # does not catch unrelated words such as "general".
+    image_action = r"\b(?:gen\w*|creat\w*|mak\w*|draw\w*)\b"
+    if not (
+        re.search(rf"{image_action}\s+{image_target}", normalized)
+        or re.search(rf"{image_target}\s+(?:generation|generator)", normalized)
+    ):
+        return None
+    return (
+        "## Image generation is not enabled in this deployment\n\n"
+        "LocalHost.AI can analyze uploaded P&IDs, engineering drawings, photos, "
+        "and scanned reports entirely on-device. This workstation does not have a "
+        "local image-generation model installed, so I will not claim to create an image. "
+        "You can upload an image for analysis, or ask me to draft a detailed visual brief "
+        "for a future approved local image-generation module."
+    )
 
 
 def heat_duty_response(message: str) -> str | None:
@@ -330,7 +562,7 @@ def heat_duty_response(message: str) -> str | None:
     delta_t1, delta_t2 = hot_in - cold_out, hot_out - cold_in
     if min(delta_t1, delta_t2, flow_rate) <= 0:
         return None
-    lmtd = (delta_t1 - delta_t2) / __import__("math").log(delta_t1 / delta_t2)
+    lmtd = (delta_t1 - delta_t2) / math.log(delta_t1 / delta_t2)
     duty_kw = flow_rate * 4.186 * (hot_in - hot_out) / 3600
     return f'''## Shell-and-tube heat-duty calculation
 
@@ -365,6 +597,133 @@ print(f"Heat duty: {{heat_duty_kw:.2f}} kW")
 Result: LMTD = **{lmtd:.2f} C**; heat duty = **{duty_kw:.2f} kW**.''' 
 
 
+def expression_calculator_response() -> str:
+    """A safe local terminal calculator for arithmetic expressions."""
+    return '''## Interactive expression calculator
+
+This accepts an expression such as `24 + 56 * 4` and follows normal arithmetic precedence. It permits only numbers, parentheses, `+`, `-`, `*`, `/`, `//`, `%`, and `**`; it does not use Python `eval()`.
+
+```python
+import ast
+import operator
+
+
+BIN_OPS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+    ast.Pow: operator.pow,
+}
+UNARY_OPS = {
+    ast.UAdd: operator.pos,
+    ast.USub: operator.neg,
+}
+
+
+def evaluate_expression(expression: str) -> float | int:
+    """Evaluate a numeric arithmetic expression without eval()."""
+    tree = ast.parse(expression, mode="eval")
+
+    def visit(node):
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+            return node.value
+        if isinstance(node, ast.BinOp) and type(node.op) in BIN_OPS:
+            return BIN_OPS[type(node.op)](visit(node.left), visit(node.right))
+        if isinstance(node, ast.UnaryOp) and type(node.op) in UNARY_OPS:
+            return UNARY_OPS[type(node.op)](visit(node.operand))
+        raise ValueError("Use numbers, parentheses, and + - * / // % ** only.")
+
+    return visit(tree.body)
+
+
+if __name__ == "__main__":
+    expression = input("Enter an arithmetic expression: ")
+    try:
+        print(f"Result: {evaluate_expression(expression)}")
+    except (SyntaxError, ValueError, ZeroDivisionError) as error:
+        print(f"Invalid expression: {error}")
+```
+
+Example: entering `24+56*4` prints `Result: 248`. This script intentionally runs in a local terminal because it requests user input.''' 
+
+
+def requests_interactive_code(message: str) -> bool:
+    """Whether the user explicitly asks for a program that reads from stdin."""
+    lower = message.lower()
+    return any(term in lower for term in (
+        "input from user", "take input", "user input", "interactive input",
+        "using input", "use input()", "use input",
+    ))
+
+
+def calculator_response(message: str) -> str | None:
+    """Supply deterministic calculator code only for well understood requests."""
+    lower = message.lower()
+    if "calculator" not in lower:
+        return None
+    if "lmtd" in lower or "heat duty" in lower:
+        return (
+            "## Calculation inputs required\n\n"
+            "To calculate LMTD/heat duty safely, provide hot and cold inlet/outlet "
+            "temperatures, the flow rate and stream, fluid specific heat, and flow arrangement. "
+            "No calculation has been performed because the required engineering inputs are incomplete."
+        )
+    # Do not discard a real user requirement behind the generic demo fallback.
+    # These requests need expression parsing and intentionally use input().
+    if (
+        any(term in lower for term in ("input", "expression", "multiple operation", "multiple operations", "at once"))
+        or bool(re.search(r"\d\s*[+\-*/%]\s*\d", message))
+    ):
+        return expression_calculator_response()
+    return '''## Verified four-function calculator
+
+```python
+def calculate(operation: str, left: float, right: float) -> float:
+    operations = {
+        "add": lambda: left + right,
+        "subtract": lambda: left - right,
+        "multiply": lambda: left * right,
+        "divide": lambda: left / right,
+    }
+    if operation not in operations:
+        raise ValueError("operation must be add, subtract, multiply, or divide")
+    if operation == "divide" and right == 0:
+        raise ZeroDivisionError("division by zero is not allowed")
+    return operations[operation]()
+
+
+if __name__ == "__main__":
+    examples = [("add", 18, 6), ("subtract", 18, 6), ("multiply", 18, 6), ("divide", 18, 6)]
+    for operation, left, right in examples:
+        print(f"{operation}: {calculate(operation, left, right)}")
+```
+
+The script is non-interactive so it can be executed and verified safely in the local sandbox.'''
+
+
+def grounded_document_prompt(user_message: str, evidence: str) -> str:
+    """Constrain inspection/report writing to extracted or retrieved evidence."""
+    if not evidence.strip():
+        return (
+            "## Evidence required\n\n"
+            "No inspection report or local knowledge evidence was supplied. "
+            "A factual approval note cannot be drafted safely. Attach the inspection report "
+            "or ask a question covered by the indexed local knowledge base."
+        )
+    return (
+        "You are LocalHost.AI preparing an internal industrial document. Use ONLY the "
+        "EVIDENCE below. Do not invent measurements, dates, equipment conditions, causes, "
+        "or recommendations. For each factual statement include the source marker exactly as "
+        "provided. When required information is missing, write 'Not available in the supplied source.'\n\n"
+        f"EVIDENCE:\n{evidence}\n\n"
+        f"REQUEST: {user_message}\n\n"
+        "Write sections: Evidence Summary, Findings, Risk / Data Gaps, Recommended Next Action."
+    )
+
+
 async def phase_execute(code: str, timeout: int = 30) -> dict:
     """Execute Python code in a sandboxed subprocess."""
     from routers.sandbox import run_code_sandboxed
@@ -389,7 +748,12 @@ async def phase_artifact(content: str, title: str, doc_type: str, eq_id: str = "
         path = build_xlsx(title, content)
         return {"file": path.name, "download_url": f"/outputs/{path.name}", "doc_type": "xlsx"}
     elif doc_type in ("script", "py"):
-        path = build_python_script(title, content)
+        # A reasoning response contains both explanation and a fenced program.
+        # Only persist the actual program: otherwise a downloaded .py file can
+        # begin with prose and fail before the user ever runs it.
+        code_blocks = extract_code_blocks(content)
+        script_content = max(code_blocks, key=len) if code_blocks else content
+        path = build_python_script(title, script_content)
         return {"file": path.name, "download_url": f"/outputs/{path.name}", "doc_type": "py"}
     else:
         path = build_inspection_report(title, content, eq_id)
@@ -489,11 +853,18 @@ async def agent_stream(req: AgentRequest, request: Request):
         # Do not spend a model invocation on a greeting. Besides being faster,
         # this guarantees that a basic demo interaction never exposes internal
         # sandbox instructions in the answer.
-        greeting = greeting_response(req.message) if not has_image and not has_pdf else None
-        if greeting:
-            yield sse_token(greeting)
+        deterministic_response = None
+        if not has_image and not has_pdf:
+            deterministic_response = (
+                greeting_response(req.message)
+                or capability_response(req.message)
+                or live_data_response(req.message)
+                or image_generation_response(req.message)
+            )
+        if deterministic_response:
+            yield sse_token(deterministic_response)
             yield sse({
-                "type": "done", "tokens": len(greeting.split()),
+                "type": "done", "tokens": len(deterministic_response.split()),
                 "latency_ms": round((time.time() - t0) * 1000),
                 "phases_completed": [], "task_type": "general", "external_calls": 0,
             })
@@ -515,7 +886,7 @@ async def agent_stream(req: AgentRequest, request: Request):
                     yield sse_phase_result("extract", {"char_count": len(extracted_text)})
                 except Exception as e:
                     yield sse_token(f"\n> ⚠ PDF extraction failed: {e}\n\n")
-                    extracted_text = f"[PDF extraction failed: {e}]"
+                    extracted_text = ""
 
             elif has_image:
                 # For images: run OCR as supplementary, but vision model is primary
@@ -542,7 +913,8 @@ async def agent_stream(req: AgentRequest, request: Request):
             if rag_chunks:
                 yield sse_token(f"\n> Found {len(rag_chunks)} relevant knowledge chunks:\n")
                 for i, chunk in enumerate(rag_chunks, 1):
-                    yield sse_token(f"> {i}. `{chunk['source']}` (distance: {chunk['distance']})\n")
+                    page = f", page {chunk['page']}" if chunk.get("page") else ""
+                    yield sse_token(f"> {i}. `{chunk['source']}{page}` (distance: {chunk['distance']})\n")
                 yield sse_token("\n")
                 yield sse_phase_result("retrieve", {"chunks": rag_chunks})
             else:
@@ -567,7 +939,38 @@ async def agent_stream(req: AgentRequest, request: Request):
             yield sse_token(f"*[Agent Phase: {'Vision Analysis' if has_image else 'Reasoning'} with {reason_cfg['display']}]*\n\n")
 
             # Build the prompt with all gathered context
-            if has_image and is_pid:
+            named_standard = requested_standard(req.message)
+            context_block = ""
+            if not has_image:
+                context_parts = []
+                if extracted_text:
+                    context_parts.append(extracted_text)
+                if rag_context:
+                    context_parts.append(f"[Knowledge Base Context]:\n{rag_context}")
+                context_block = "\n\n---\n\n".join(context_parts)
+
+            missing_named_standard = bool(named_standard and not rag_context)
+            attached_standard_comparison = bool(
+                has_pdf and named_standard and extracted_text and rag_context
+            )
+            if named_standard and not rag_context:
+                # A standard number must resolve to that exact local file. Do
+                # not ask the model to guess from its training data or from a
+                # neighbouring standard such as OISD-118.
+                final_prompt = (
+                    f"## Local source not found\n\n"
+                    f"`{named_standard}` is not available in this local knowledge base. "
+                    "I have not used another standard as a substitute. Add the approved local "
+                    "source and retry."
+                )
+            elif attached_standard_comparison:
+                # Exact-standard retrieval is preserved, but an attachment
+                # changes the task from a lookup into a two-source comparison.
+                final_prompt = grounded_comparison_prompt(
+                    req.message, extracted_text, rag_context, named_standard,
+                )
+                run_temp = 0.2
+            elif has_image and is_pid:
                 # P&ID: vision model + OCR supplementary
                 ocr_block = ""
                 if extracted_text and not extracted_text.startswith("["):
@@ -591,28 +994,53 @@ async def agent_stream(req: AgentRequest, request: Request):
                 run_temp = 0.3
             else:
                 # Text-only tasks
-                context_parts = []
-                if extracted_text:
-                    context_parts.append(f"[Extracted Document Text]:\n{extracted_text}")
-                if rag_context:
-                    context_parts.append(f"[Knowledge Base Context]:\n{rag_context}")
-
-                context_block = "\n\n---\n\n".join(context_parts)
                 if task_type == "code":
+                    execution_constraint = (
+                        "The user explicitly requested interactive input. Return a runnable local-terminal "
+                        "script using input() and state that it must not be executed in the headless sandbox."
+                        if requests_interactive_code(req.message)
+                        else "This runs non-interactively in a headless sandbox: NEVER call input(), "
+                        "never wait for user input, and use clearly labelled sample values instead."
+                    )
                     final_prompt = (
                         "You are a Python engineering assistant. Return one complete runnable Python "
                         "solution in a fenced ```python block, followed by a short explanation. "
-                        "This runs non-interactively in a headless sandbox: NEVER call input(), "
-                        "never wait for user input, and use clearly labelled sample values instead.\n\n"
+                        f"{execution_constraint}\n\n"
                         f"User request: {req.message}"
                     )
+                elif task_type == "document":
+                    final_prompt = grounded_document_prompt(req.message, context_block)
                 else:
                     final_prompt = make_general_prompt(req.message, context_block)
 
                 run_temp = 0.7 if task_type == "general" else 0.4
 
             try:
-                verified_response = heat_duty_response(req.message) if task_type == "code" else None
+                verified_response = None
+                if missing_named_standard:
+                    verified_response = final_prompt
+                elif has_pdf and not extracted_text:
+                    verified_response = (
+                        "## Readable evidence required\n\n"
+                        "No text could be extracted from this PDF using the local reader/OCR worker. "
+                        "The backend remains available, but a factual summary or comparison cannot be "
+                        "produced without readable source evidence. Try a clearer scan or the first three pages."
+                    )
+                elif named_standard and rag_chunks and not has_pdf:
+                    verified_response = named_standard_evidence_response(named_standard, rag_chunks)
+                elif task_type == "code":
+                    verified_response = heat_duty_response(req.message) or calculator_response(req.message)
+                elif task_type == "document" and not context_block:
+                    verified_response = grounded_document_prompt(req.message, "")
+                elif (
+                    task_type in {"general", "knowledge"}
+                    and not has_image
+                    and not has_pdf
+                    and not rag_context
+                ):
+                    # A factual question without uploaded or locally retrieved
+                    # evidence must not be handed to a small model to improvise.
+                    verified_response = no_local_evidence_response(req.message)
                 if verified_response:
                     full_response = verified_response
                     token_count = len(verified_response.split())
@@ -639,6 +1067,14 @@ async def agent_stream(req: AgentRequest, request: Request):
         # ── PHASE: EXECUTE ──
         if "execute" in phases and full_response:
             code_blocks = extract_code_blocks(full_response)
+            if code_blocks:
+                if any("input(" in code for code in code_blocks):
+                    yield sse_token(
+                        "\n\n> ℹ Interactive input was requested, so this program was not run in the "
+                        "headless sandbox. Download or copy it and run it in a local terminal.\n"
+                    )
+                    phases_completed.append("execute-skipped-interactive")
+                    code_blocks = []
             if code_blocks:
                 yield sse_phase("execute", "Executing code in sandbox", "code")
                 yield sse_token("\n\n*[Agent Phase: Sandbox Execution]*\n")

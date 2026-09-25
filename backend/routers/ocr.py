@@ -41,7 +41,7 @@ async def extract_text(
     # EasyOCR — CPU only
     try:
         import easyocr
-        reader = easyocr.Reader(["en"], gpu=False, verbose=False)
+        reader = easyocr.Reader(["en"], gpu=False, verbose=False, download_enabled=False)
         results = reader.readtext(str(save_path))
         extracted_text = "\n".join([r[1] for r in results if r[2] > 0.3])
     except Exception as e:

@@ -1,0 +1,18 @@
+def calculate(operation: str, left: float, right: float) -> float:
+    operations = {
+        "add": lambda: left + right,
+        "subtract": lambda: left - right,
+        "multiply": lambda: left * right,
+        "divide": lambda: left / right,
+    }
+    if operation not in operations:
+        raise ValueError("operation must be add, subtract, multiply, or divide")
+    if operation == "divide" and right == 0:
+        raise ZeroDivisionError("division by zero is not allowed")
+    return operations[operation]()
+
+
+if __name__ == "__main__":
+    examples = [("add", 18, 6), ("subtract", 18, 6), ("multiply", 18, 6), ("divide", 18, 6)]
+    for operation, left, right in examples:
+        print(f"{operation}: {calculate(operation, left, right)}")

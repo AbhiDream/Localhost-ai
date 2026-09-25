@@ -107,12 +107,10 @@ def build_inspection_report(title: str, content: str, equipment_id: str) -> Path
 
 def build_python_script(title: str, content: str) -> Path:
     """Save generated Python script."""
-    # Strip markdown code fences
-    lines = content.strip().splitlines()
-    if lines and lines[0].startswith("```"):
-        lines = lines[1:]
-    if lines and lines[-1].startswith("```"):
-        lines = lines[:-1]
+    # Agent responses may have a short explanation before/after the fenced
+    # Python program. Save the program only, so the artifact is runnable.
+    code_blocks = re.findall(r"```(?:python|py)?\s*\n(.*?)```", content, re.DOTALL | re.IGNORECASE)
+    program = max(code_blocks, key=len).strip() if code_blocks else content.strip()
 
     header = f'''"""
 {title}
@@ -121,7 +119,7 @@ All computation is local. No external API calls.
 Date: 05-Sep-2026
 """
 '''
-    script = header + "\n".join(lines)
+    script = header + program + "\n"
     filename = f"script_{uuid.uuid4().hex[:8]}.py"
     path = OUTPUT_DIR / filename
     path.write_text(script, encoding="utf-8")
@@ -288,9 +286,10 @@ async def generate_document(req: DocRequest):
     if req.doc_type == "report":
         full_prompt = (
             f"You are a technical writer for Mangalore Refinery and Petrochemicals Limited (MRPL). "
-            f"Write a detailed inspection report for the following:\n\n{req.prompt}\n\n"
+            f"Draft a source-bound inspection report using ONLY the following supplied evidence:\n\n{req.prompt}\n\n"
             f"Use sections: Executive Summary, Findings, Risk Assessment, Recommendations, Conclusion. "
-            f"Use ## for section headers. Be specific and technical."
+            f"Use ## for section headers. Do not invent readings, dates, damage, causes, or standards. "
+            f"When a fact is absent, write 'Not available in the supplied source.'"
         )
         content = await ollama_generate(full_prompt, model_tag)
         file_path = build_inspection_report(title, content, eq_id)

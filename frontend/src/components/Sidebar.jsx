@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function Sidebar({ sessions, activeId, onSelect, onNew, open, onToggle }) {
+export default function Sidebar({ sessions, activeId, onSelect, onNew, open, onToggle, onDelete }) {
   const [folders] = useState(['General', 'Design', 'Management'])
   
   // Group sessions by simple heuristic for UI
@@ -9,7 +9,7 @@ export default function Sidebar({ sessions, activeId, onSelect, onNew, open, onT
 
   return (
     <aside
-      className={`h-full flex flex-col bg-sidebar text-sidebar-text flex-shrink-0 z-40 transition-all duration-300 dark-scroll ${
+      className={`h-full flex flex-col bg-black text-sidebar-text flex-shrink-0 z-40 transition-all duration-300 dark-scroll ${
         open ? 'w-[260px] lg:w-[280px]' : 'w-0 min-w-0 opacity-0 overflow-hidden pointer-events-none'
       }`}
     >
@@ -61,36 +61,6 @@ export default function Sidebar({ sessions, activeId, onSelect, onNew, open, onT
             <span className="material-symbols-outlined text-[18px]">chat</span>
             <span className="text-[14px]">Chats</span>
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-text hover:text-sidebar-text-bright hover:bg-sidebar-hover transition-colors">
-            <span className="material-symbols-outlined text-[18px]">tune</span>
-            <span className="text-[14px]">Prompt Settings</span>
-          </button>
-        </div>
-
-        <div className="border-t border-sidebar-border" />
-
-        {/* Folders */}
-        <div>
-          <div className="flex items-center justify-between px-3 py-1 mb-1 group cursor-pointer">
-            <span className="text-[11px] font-semibold tracking-wider text-sidebar-text group-hover:text-sidebar-text-bright transition-colors uppercase">Pinned Folders</span>
-            <div className="flex items-center text-sidebar-text opacity-0 group-hover:opacity-100 transition-opacity">
-              <span className="material-symbols-outlined text-[16px] hover:text-white">add</span>
-              <span className="material-symbols-outlined text-[16px] hover:text-white">expand_more</span>
-            </div>
-          </div>
-          <div className="space-y-1">
-            {folders.map(f => (
-              <button key={f} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-text hover:text-sidebar-text-bright hover:bg-sidebar-hover transition-colors group">
-                <span className="material-symbols-outlined text-[18px]">folder</span>
-                <span className="text-[14px]">{f}</span>
-                <span className="material-symbols-outlined text-[16px] ml-auto opacity-0 group-hover:opacity-100 hover:text-white">more_horiz</span>
-              </button>
-            ))}
-          </div>
-          <button className="w-full flex items-center gap-2 px-3 py-2 mt-1 rounded-lg text-sidebar-text hover:text-sidebar-text-bright transition-colors text-[13px]">
-            <span className="material-symbols-outlined text-[16px]">add</span>
-            Show 4 more
-          </button>
         </div>
 
         <div className="border-t border-sidebar-border" />
@@ -118,7 +88,9 @@ export default function Sidebar({ sessions, activeId, onSelect, onNew, open, onT
                 >
                   <span className="material-symbols-outlined text-[16px]">chat_bubble_outline</span>
                   <span className="text-[13px] truncate flex-1 text-left">{sess.title}</span>
-                  <span className="material-symbols-outlined text-[16px] ml-auto opacity-0 group-hover:opacity-100 hover:text-white">more_horiz</span>
+                  <div onClick={(e) => onDelete(sess.id, e)} className="ml-auto opacity-0 group-hover:opacity-100 hover:text-error transition-colors p-1">
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                  </div>
                 </button>
               ))}
             </div>
@@ -137,7 +109,9 @@ export default function Sidebar({ sessions, activeId, onSelect, onNew, open, onT
                 >
                   <span className="material-symbols-outlined text-[16px]">chat_bubble_outline</span>
                   <span className="text-[13px] truncate flex-1 text-left">{sess.title}</span>
-                  <span className="material-symbols-outlined text-[16px] ml-auto opacity-0 group-hover:opacity-100 hover:text-white">more_horiz</span>
+                  <div onClick={(e) => onDelete(sess.id, e)} className="ml-auto opacity-0 group-hover:opacity-100 hover:text-error transition-colors p-1">
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                  </div>
                 </button>
               ))}
             </div>

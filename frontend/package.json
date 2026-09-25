@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --configLoader native",
-    "build": "vite build",
+    "build": "vite build --configLoader native",
     "lint": "oxlint",
     "preview": "vite preview"
   },

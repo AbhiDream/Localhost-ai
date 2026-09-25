@@ -58,7 +58,9 @@ async def embed_text(text: str, model_type: str = "nomic-embed-text") -> List[fl
     if model_type == "all-MiniLM-L6-v2":
         if _embedder is None:
             from sentence_transformers import SentenceTransformer
-            _embedder = SentenceTransformer("all-MiniLM-L6-v2")
+            # Do not fall back to Hugging Face downloads in an air-gapped
+            # installation. The caller already has an offline lexical fallback.
+            _embedder = SentenceTransformer("all-MiniLM-L6-v2", local_files_only=True)
         import asyncio
         loop = asyncio.get_event_loop()
         emb = await loop.run_in_executor(None, lambda: _embedder.encode(text).tolist())
