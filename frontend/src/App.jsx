@@ -67,6 +67,17 @@ export default function App() {
     setSessions(prev => prev.map(s => s.id === id ? { ...s, title: newTitle } : s))
   }
 
+  const clearAllSessions = () => {
+    const newId = genId()
+    setActiveId(newId)
+    setSessions([{ id: newId, title: 'New Session', timeAgo: 'now', model: 'phi3.5', active: true }])
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('chat_messages_')) {
+        localStorage.removeItem(key)
+      }
+    })
+  }
+
   return (
     <div className="h-screen flex overflow-hidden bg-surface font-sans">
       {/* Sidebar */}
@@ -76,6 +87,7 @@ export default function App() {
         onSelect={selectSession}
         onNew={newChat}
         onDelete={deleteSession}
+        onClearAll={clearAllSessions}
         open={sidebarOpen}
         onToggle={() => setSidebarOpen(o => !o)}
       />
