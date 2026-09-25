@@ -63,6 +63,10 @@ export default function App() {
     localStorage.removeItem(`chat_messages_${id}`)
   }
 
+  const renameSession = (id, newTitle) => {
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, title: newTitle } : s))
+  }
+
   return (
     <div className="h-screen flex overflow-hidden bg-surface font-sans">
       {/* Sidebar */}
@@ -117,7 +121,7 @@ export default function App() {
 
         {/* Content + Settings Panel */}
         <div className="flex-1 flex overflow-hidden">
-          <ChatPanel key={activeId} session={activeSession} onActiveModelChange={setActiveModel} />
+          <ChatPanel key={activeId} session={activeSession} onActiveModelChange={setActiveModel} onRename={renameSession} />
           {settingsOpen && <NetworkMonitor />}
         </div>
       </div>

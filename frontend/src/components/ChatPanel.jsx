@@ -68,7 +68,7 @@ const PRESET_PILLS = [
   'Extract Data', 'Simple', 'Formal', 'Technical', 'Report'
 ]
 
-export default function ChatPanel({ session, onActiveModelChange }) {
+export default function ChatPanel({ session, onActiveModelChange, onRename }) {
   const [messages, setMessages] = useState(() => {
     try {
       const saved = localStorage.getItem(`chat_messages_${session.id}`)
@@ -126,6 +126,12 @@ export default function ChatPanel({ session, onActiveModelChange }) {
   const sendMessage = async (textOverride) => {
     const text = (textOverride || input).trim()
     if (!text || generating) return
+
+    if (session.title === 'New Session') {
+      const words = text.split(/\s+/)
+      const newTitle = words.slice(0, 3).join(' ') + (words.length > 3 ? '...' : '')
+      if (onRename) onRename(session.id, newTitle)
+    }
 
     const currentAttachment = attachedFile
     setAttachedFile(null)
