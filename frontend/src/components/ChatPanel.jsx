@@ -325,25 +325,30 @@ export default function ChatPanel({ session, onActiveModelChange, onRename }) {
                 </div>
               </div>
 
-              {/* Output Tags */}
+              {/* Info Card */}
               <div className="bg-surface-card border border-border rounded-2xl p-5 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2 text-text-primary font-medium">
-                    <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                    Quick Actions
-                  </div>
-                  <button className="text-[12px] font-medium text-text-secondary hover:text-text-primary flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">add</span> Add custom
-                  </button>
+                <div className="flex items-center gap-2 text-text-primary font-medium mb-3">
+                  <span className="material-symbols-outlined text-[18px] text-accent">info</span>
+                  About LocalHost.Ai
                 </div>
-                <div className="flex flex-wrap gap-2.5">
-                  {PRESET_PILLS.map((pill, i) => (
-                    <button key={i} onClick={() => sendMessage(pill)} className={`px-4 py-2 rounded-full text-[13px] font-medium transition-all ${
-                      i < 4 ? 'bg-[#f0e6ff] text-[#6b21a8] hover:bg-[#e9d5ff]' : 'bg-surface-inset text-text-secondary hover:bg-border hover:text-text-primary'
-                    }`}>
-                      {pill}
-                    </button>
-                  ))}
+                <div className="space-y-4 text-[13px] text-text-secondary leading-relaxed">
+                  <p>
+                    LocalHost.Ai is a secure, locally-hosted AI platform designed to run powerful language models entirely on your infrastructure.
+                  </p>
+                  <ul className="space-y-3 mt-4">
+                    <li className="flex items-start gap-2.5">
+                      <span className="material-symbols-outlined text-[16px] text-green-600 mt-0.5">verified_user</span>
+                      <span><strong>Data Sovereignty:</strong> 100% of computations happen locally. Zero external telemetry or data leaks.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="material-symbols-outlined text-[16px] text-blue-600 mt-0.5">offline_bolt</span>
+                      <span><strong>Air-gapped Ready:</strong> Fully functional without an internet connection, ensuring complete privacy.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="material-symbols-outlined text-[16px] text-purple-600 mt-0.5">memory</span>
+                      <span><strong>Edge Inference:</strong> Optimized for local hardware to deliver fast and reliable AI assistance.</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
