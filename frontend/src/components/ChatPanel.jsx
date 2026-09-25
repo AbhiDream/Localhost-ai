@@ -69,6 +69,22 @@ const PRESET_PILLS = [
 ]
 
 export default function ChatPanel({ session, onActiveModelChange, onRename }) {
+  const [savedPrompts, setSavedPrompts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mrpl_saved_prompts')
+      if (saved) return JSON.parse(saved)
+    } catch (e) {}
+    return [
+      'Summarize this long text into a short, professional paragraph that highlights only the key insights.',
+      'Generate an inspection report for CDU-2 heat exchanger E-201',
+      'Write a Python script for LMTD calculation based on process data.'
+    ]
+  })
+
+  useEffect(() => {
+    localStorage.setItem('mrpl_saved_prompts', JSON.stringify(savedPrompts))
+  }, [savedPrompts])
+
   const [messages, setMessages] = useState(() => {
     try {
       const saved = localStorage.getItem(`chat_messages_${session.id}`)
@@ -290,16 +306,20 @@ export default function ChatPanel({ session, onActiveModelChange, onRename }) {
                     <span className="material-symbols-outlined text-[18px]">edit_note</span>
                     Your saved prompts
                   </div>
-                  <button className="text-[12px] font-medium text-text-secondary hover:text-text-primary flex items-center gap-1">
+                  <button onClick={() => {
+                    const p = window.prompt('Enter your new prompt:')
+                    if (p && p.trim()) setSavedPrompts(prev => [p.trim(), ...prev])
+                  }} className="text-[12px] font-medium text-text-secondary hover:text-text-primary flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">add</span> Add prompt
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {['Summarize this long text into a short, professional paragraph that highlights only the key insights.',
-                    'Generate an inspection report for CDU-2 heat exchanger E-201',
-                    'Write a Python script for LMTD calculation based on process data.'].map((p, i) => (
-                    <button key={i} onClick={() => setInput(p)} className="w-full text-left p-4 rounded-xl border border-border hover:border-accent hover:shadow-sm transition-all bg-white text-[13px] text-text-secondary leading-relaxed group">
-                      <span className="group-hover:text-text-primary transition-colors">{p}</span>
+                  {savedPrompts.map((p, i) => (
+                    <button key={i} onClick={() => setInput(p)} className="w-full text-left p-4 rounded-xl border border-border hover:border-accent hover:shadow-sm transition-all bg-white text-[13px] text-text-secondary leading-relaxed group relative">
+                      <span className="group-hover:text-text-primary transition-colors block pr-6">{p}</span>
+                      <div onClick={(e) => { e.stopPropagation(); setSavedPrompts(prev => prev.filter((_, idx) => idx !== i)) }} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 hover:text-error transition-all p-1 bg-white rounded">
+                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                      </div>
                     </button>
                   ))}
                 </div>
