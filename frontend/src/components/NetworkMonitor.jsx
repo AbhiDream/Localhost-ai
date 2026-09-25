@@ -1,13 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 
-function timeAgo(ts) {
-  const s = Math.round((Date.now() / 1000) - ts)
-  if (s < 60) return `${s}s ago`
-  return `${Math.round(s / 60)}m ago`
-}
-
 const INIT_LOG = [
-  { type: 'INFO', color: 'text-tertiary', time: '[--:--:--]', msg: 'System initialized — awaiting first task' },
+  { type: 'INFO', color: 'text-text-secondary', time: '[--:--]', msg: 'System initialized' },
 ]
 
 export default function NetworkMonitor() {
@@ -24,11 +18,11 @@ export default function NetworkMonitor() {
       const d = await r.json()
       setStats(d)
       if (d.recent_log?.length) {
-        const mapped = d.recent_log.slice(-8).map(e => ({
+        const mapped = d.recent_log.slice(-5).map(e => ({
           type: e.external ? 'WARN' : 'CALL',
-          color: e.external ? 'text-error' : 'text-secondary-container',
-          time: `[${new Date(e.ts * 1000).toLocaleTimeString('en-GB', { hour12: false })}]`,
-          msg: `${e.destination} — ${e.preview || ''}`,
+          color: e.external ? 'text-error' : 'text-success',
+          time: `[${new Date(e.ts * 1000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}]`,
+          msg: `${e.destination}`,
         }))
         setLog(mapped.length ? mapped : INIT_LOG)
       }
@@ -40,7 +34,7 @@ export default function NetworkMonitor() {
     try {
       const r = await fetch('/api/documents/list')
       const d = await r.json()
-      setArtifacts((d.files || []).slice(0, 5))
+      setArtifacts((d.files || []).slice(0, 3))
     } catch {}
   }
 
@@ -52,104 +46,121 @@ export default function NetworkMonitor() {
   }, [])
 
   const extCalls = stats?.external_calls ?? 0
-  const intCalls = stats?.internal_calls ?? 0
 
   return (
-    <aside className="w-80 h-full border-l border-[#262b35] bg-[#101318] flex flex-col flex-shrink-0 z-30">
-      {/* Header */}
-      <div className="p-4 border-b border-[#262b35] bg-[#14171d] flex items-center gap-2 flex-shrink-0">
-        <span className="material-symbols-outlined text-primary text-[18px]">monitor_heart</span>
-        <h2 className="font-label-caps text-label-caps text-white font-bold tracking-wider">SYSTEM TELEMETRY</h2>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {/* Sovereignty Status */}
+    <aside className="w-[300px] h-full border-l border-border bg-surface-card flex flex-col flex-shrink-0 z-30 overflow-y-auto">
+      <div className="p-5 space-y-6">
+        
+        {/* Model Selection */}
         <section>
-          <h3 className="font-label-caps text-[10px] text-on-surface-variant mb-2.5 border-b border-[#262b35] pb-1 uppercase tracking-wider">
-            Data Sovereignty
-          </h3>
-          <div className={`border p-3 text-center mb-3 rounded ${extCalls === 0 ? 'bg-[#0a1a15] border-tertiary/30' : 'bg-[#1a0a0a] border-error/30'}`}>
-            <div className="font-code-sm text-[10px] text-on-surface-variant uppercase tracking-wide mb-0.5">EXTERNAL CALLS</div>
-            <div className={`font-display-lg text-[36px] font-mono leading-none ${extCalls === 0 ? 'text-tertiary' : 'text-error'}`}>{extCalls}</div>
-            <div className={`font-code-sm text-[10px] mt-1 ${extCalls === 0 ? 'text-tertiary' : 'text-error'}`}>
-              {extCalls === 0 ? '✓ SOVEREIGN — VERIFIED' : '✗ SOVEREIGNTY COMPROMISED'}
-            </div>
+          <h3 className="text-[13px] font-medium text-text-primary mb-3">Model</h3>
+          <div className="relative">
+            <select className="w-full appearance-none bg-surface-inset border border-border rounded-xl px-4 py-2.5 text-[14px] text-text-primary font-medium focus:outline-none focus:ring-2 focus:ring-accent/50 cursor-pointer">
+              <option>Phi-3.5 Mini</option>
+              <option>Qwen2.5-Coder 3B</option>
+              <option>Moondream 2</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-text-tertiary pointer-events-none">unfold_more</span>
           </div>
-          <table className="w-full font-code-sm text-code-sm text-left border-collapse">
-            <tbody>
-              <tr className="border-b border-[#212631]">
-                <td className="py-1.5 text-on-surface-variant font-mono">inference</td>
-                <td className="py-1.5 text-on-surface-variant font-mono">→</td>
-                <td className="py-1.5 text-white font-mono">ollama</td>
-                <td className="py-1.5 text-right"><span className="material-symbols-outlined text-[15px] text-tertiary">link</span></td>
-              </tr>
-              <tr className="border-b border-[#212631]">
-                <td className="py-1.5 text-on-surface-variant font-mono">embeddings</td>
-                <td className="py-1.5 text-on-surface-variant font-mono">→</td>
-                <td className="py-1.5 text-white font-mono">chroma</td>
-                <td className="py-1.5 text-right"><span className="material-symbols-outlined text-[15px] text-tertiary">link</span></td>
-              </tr>
-              <tr className="border-b border-[#212631]">
-                <td className="py-1.5 text-on-surface-variant font-mono">internet</td>
-                <td className="py-1.5 text-on-surface-variant font-mono">→</td>
-                <td className="py-1.5 text-error font-mono">blocked</td>
-                <td className="py-1.5 text-right"><span className="material-symbols-outlined text-[15px] text-error">block</span></td>
-              </tr>
-              <tr>
-                <td className="py-1.5 text-on-surface-variant font-mono">cloud API</td>
-                <td className="py-1.5 text-on-surface-variant font-mono">→</td>
-                <td className="py-1.5 text-error font-mono">blocked</td>
-                <td className="py-1.5 text-right"><span className="material-symbols-outlined text-[15px] text-error">block</span></td>
-              </tr>
-            </tbody>
-          </table>
-          {intCalls > 0 && (
-            <div className="mt-2 font-code-sm text-[10px] text-on-surface-variant/60">
-              Local calls processed: <span className="text-white font-mono">{intCalls}</span>
-            </div>
-          )}
         </section>
 
-        {/* Action Log */}
+        {/* Presets */}
         <section>
-          <h3 className="font-label-caps text-[10px] text-on-surface-variant mb-2.5 border-b border-[#262b35] pb-1 uppercase tracking-wider">
-            Action Log (Local Only)
-          </h3>
-          <div className="bg-[#0b0d11] border border-[#212631] p-3 font-code-sm text-[11px] font-mono h-44 overflow-y-auto space-y-1.5 rounded">
-            {log.map((entry, i) => (
-              <div key={i} className="text-on-surface-variant">
-                <span className="text-gray-500">{entry.time}</span>{' '}
-                <span className={entry.color}>{entry.type}</span>{' '}
-                <span className="break-all">{entry.msg}</span>
+          <h3 className="text-[13px] font-medium text-text-primary mb-3">Presets</h3>
+          <div className="relative">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-tertiary pointer-events-none">business_center</span>
+            <select className="w-full appearance-none bg-surface-inset border border-border rounded-xl pl-10 pr-4 py-2.5 text-[14px] text-text-primary font-medium focus:outline-none focus:ring-2 focus:ring-accent/50 cursor-pointer">
+              <option>Industrial Report</option>
+              <option>Code Execution</option>
+              <option>Safety SOP</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-text-tertiary pointer-events-none">unfold_more</span>
+          </div>
+        </section>
+
+        {/* Show Probabilities */}
+        <section>
+          <h3 className="text-[13px] font-medium text-text-primary mb-3">Show probabilities</h3>
+          <div className="relative">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-tertiary pointer-events-none">graphic_eq</span>
+            <select className="w-full appearance-none bg-surface-inset border border-border rounded-xl pl-10 pr-4 py-2.5 text-[14px] text-text-primary font-medium focus:outline-none focus:ring-2 focus:ring-accent/50 cursor-pointer">
+              <option>Full Spectrum</option>
+              <option>Top 5 Only</option>
+              <option>Disabled</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-text-tertiary pointer-events-none">unfold_more</span>
+          </div>
+        </section>
+
+        {/* Sliders Area */}
+        <section className="space-y-4 border-t border-border pt-5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[13px] font-medium text-text-primary">Response format</h3>
+            <div className="relative">
+              <select className="appearance-none bg-surface-inset border border-border rounded-lg pl-3 pr-8 py-1 text-[12px] text-text-primary focus:outline-none cursor-pointer">
+                <option>Text</option>
+                <option>JSON</option>
+              </select>
+              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-text-tertiary pointer-events-none">unfold_more</span>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[13px] text-text-primary">Max Tokens</span>
+              <span className="text-[13px] font-mono text-text-secondary">256</span>
+            </div>
+            <input type="range" className="w-full accent-accent h-1.5 bg-border rounded-lg appearance-none cursor-pointer" />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[13px] text-text-primary">Temperature</span>
+              <span className="text-[13px] font-mono text-text-secondary">0.3</span>
+            </div>
+            <input type="range" className="w-full accent-accent h-1.5 bg-border rounded-lg appearance-none cursor-pointer" />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[13px] text-text-primary">Frequency penalty</span>
+              <span className="text-[13px] font-mono text-text-secondary">0.99</span>
+            </div>
+            <input type="range" className="w-full accent-[#e8baff] h-1.5 bg-border rounded-lg appearance-none cursor-pointer" />
+          </div>
+        </section>
+
+        <section className="border-t border-border pt-5">
+           <h3 className="text-[13px] font-medium text-text-primary mb-3">Sovereignty Status</h3>
+           <div className={`p-4 rounded-xl border ${extCalls === 0 ? 'bg-accent-container border-accent/30' : 'bg-red-50 border-error/30'}`}>
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`material-symbols-outlined text-[18px] ${extCalls === 0 ? 'text-accent-text' : 'text-error'}`}>
+                  {extCalls === 0 ? 'verified_user' : 'gpp_bad'}
+                </span>
+                <span className={`font-semibold text-[13px] ${extCalls === 0 ? 'text-accent-text' : 'text-error'}`}>
+                  {extCalls === 0 ? 'Air-gapped Mode' : 'Sovereignty Breach'}
+                </span>
               </div>
-            ))}
-          </div>
+              <div className="text-[11px] text-text-secondary">
+                External API calls: <strong className={extCalls === 0 ? 'text-accent-text' : 'text-error'}>{extCalls}</strong>
+              </div>
+           </div>
+
+           {/* Mini Action Log */}
+           <div className="mt-3">
+             <div className="text-[11px] font-medium text-text-tertiary mb-1.5 uppercase tracking-wide">Network Log</div>
+             <div className="bg-surface-inset rounded-lg p-2.5 font-mono text-[10px] space-y-1">
+               {log.map((entry, i) => (
+                 <div key={i} className="flex gap-2 truncate">
+                   <span className="text-text-tertiary flex-shrink-0">{entry.time}</span>
+                   <span className={entry.color}>{entry.type}</span>
+                   <span className="text-text-secondary truncate">{entry.msg}</span>
+                 </div>
+               ))}
+             </div>
+           </div>
         </section>
 
-        {/* Output Artifacts */}
-        <section>
-          <h3 className="font-label-caps text-[10px] text-on-surface-variant mb-2.5 border-b border-[#262b35] pb-1 uppercase tracking-wider">
-            Output Artifacts
-          </h3>
-          <ul className="space-y-2 font-code-sm text-[11px]">
-            {artifacts.length === 0 && (
-              <li className="text-on-surface-variant/50 text-center py-3 italic">No artifacts generated yet</li>
-            )}
-            {artifacts.map((f, i) => (
-              <li key={i} className="bg-[#141820] border border-[#232936] p-2 rounded flex items-center justify-between hover:border-primary/40 transition-colors">
-                <div className="truncate text-on-surface font-mono flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[14px] text-primary">
-                    {f.name.endsWith('.py') ? 'code' : f.name.endsWith('.pptx') ? 'slideshow' : f.name.endsWith('.xlsx') ? 'table_chart' : 'description'}
-                  </span>
-                  {f.name}
-                </div>
-                <a href={f.url} download={f.name} className="text-primary hover:text-white transition-colors">
-                  <span className="material-symbols-outlined text-[15px]">download</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
       </div>
     </aside>
   )

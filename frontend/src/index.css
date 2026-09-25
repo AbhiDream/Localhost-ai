@@ -7,99 +7,108 @@
 @import "material-symbols/outlined.css";
 @import "katex/dist/katex.min.css";
 
-/* ── Theme — replaces the CDN tailwind.config ── */
+/* ── Theme — Modern dual-tone design system ── */
 @theme {
-  /* Colors — Material 3 dark industrial palette */
-  --color-outline: #8d919a;
-  --color-on-surface-variant: #c3c6d1;
-  --color-surface-container-high: #1c2a41;
-  --color-surface-container-highest: #27354c;
-  --color-primary-container: #003366;
-  --color-on-tertiary-container: #00b092;
-  --color-surface: #041329;
-  --color-on-secondary: #502400;
-  --color-primary: #a7c8ff;
+  /* ─── Accent ─── */
+  --color-accent: #38debb;
+  --color-accent-hover: #2ec4a4;
+  --color-accent-container: #e6faf5;
+  --color-accent-text: #0d7d5f;
+
+  /* ─── Dark (buttons, user bubbles) ─── */
+  --color-dark: #111827;
+  --color-dark-hover: #1f2937;
+
+  /* ─── Sidebar ─── */
+  --color-sidebar: #0f0f1a;
+  --color-sidebar-surface: #181828;
+  --color-sidebar-hover: #1e1e32;
+  --color-sidebar-active: #282842;
+  --color-sidebar-border: #28283e;
+  --color-sidebar-text: #8888a8;
+  --color-sidebar-text-bright: #d0d0e8;
+
+  /* ─── Surface ─── */
+  --color-surface: #f5f6f8;
+  --color-surface-card: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-surface-inset: #eef0f4;
+
+  /* ─── Border ─── */
+  --color-border: #e2e4e9;
+  --color-border-subtle: #f0f1f3;
+
+  /* ─── Text ─── */
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  --color-text-inverse: #ffffff;
+
+  /* ─── Legacy aliases (compatibility) ─── */
+  --color-primary: #38debb;
   --color-tertiary: #38debb;
-  --color-secondary-container: #f27a00;
-  --color-surface-container-lowest: #010e24;
-  --color-tertiary-container: #003b2f;
-  --color-inverse-primary: #3a5f94;
-  --color-surface-container-low: #0d1c32;
-  --color-on-secondary-fixed: #311300;
-  --color-secondary-fixed-dim: #ffb786;
-  --color-error: #ffb4ab;
-  --color-surface-variant: #27354c;
-  --color-on-primary: #003061;
-  --color-on-error: #690005;
-  --color-on-tertiary-fixed-variant: #005142;
-  --color-secondary: #ffb786;
-  --color-on-surface: #d6e3ff;
-  --color-surface-tint: #a7c8ff;
-  --color-surface-container: #112036;
-  --color-on-primary-fixed: #001b3c;
-  --color-surface-bright: #2c3951;
-  --color-on-background: #d6e3ff;
-  --color-outline-variant: #43474f;
-  --color-on-primary-container: #799dd6;
-  --color-secondary-fixed: #ffdcc6;
-  --color-background: #041329;
-  --color-on-tertiary: #00382d;
-  --color-primary-fixed-dim: #a7c8ff;
-  --color-error-container: #93000a;
-  --color-on-error-container: #ffdad6;
-  --color-on-secondary-container: #542600;
-  --color-tertiary-fixed: #5ffbd6;
-  --color-tertiary-fixed-dim: #38debb;
-  --color-inverse-surface: #d6e3ff;
-  --color-inverse-on-surface: #233148;
-  --color-on-primary-fixed-variant: #1f477b;
-  --color-surface-dim: #041329;
-  --color-primary-fixed: #d5e3ff;
-  --color-on-secondary-fixed-variant: #723600;
-  --color-on-tertiary-fixed: #00201a;
+  --color-error: #ef4444;
+  --color-on-surface: #111827;
+  --color-on-surface-variant: #6b7280;
+  --color-primary-container: #111827;
+  --color-secondary-container: #38debb;
+  --color-secondary-fixed-dim: #f59e0b;
+  --color-tertiary-container: #e6faf5;
+  --color-outline-variant: #d1d5db;
+  --color-on-secondary-fixed: #ffffff;
+  --color-on-tertiary-container: #0d7d5f;
 
-  /* Radius */
-  --radius: 0.125rem;
-  --radius-lg: 0.25rem;
-  --radius-xl: 0.5rem;
-  --radius-full: 0.75rem;
+  /* ─── Status ─── */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
 
-  /* Fonts */
+  /* ─── Radius ─── */
+  --radius: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  /* ─── Fonts ─── */
+  --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
   --font-body-sm: "Inter Variable", "Inter", sans-serif;
-  --font-display-lg: "Inter Variable", "Inter", sans-serif;
-  --font-label-caps: "JetBrains Mono Variable", "JetBrains Mono", monospace;
   --font-body-lg: "Inter Variable", "Inter", sans-serif;
+  --font-display-lg: "Inter Variable", "Inter", sans-serif;
+  --font-label-caps: "Inter Variable", "Inter", sans-serif;
   --font-code-sm: "JetBrains Mono Variable", "JetBrains Mono", monospace;
   --font-headline-sm: "Inter Variable", "Inter", sans-serif;
   --font-headline-md: "Inter Variable", "Inter", sans-serif;
   --font-data-mono: "JetBrains Mono Variable", "JetBrains Mono", monospace;
 
-  /* Font sizes */
+  /* ─── Font sizes ─── */
   --text-body-sm: 14px;
   --text-body-sm--line-height: 1.5;
   --text-display-lg: 48px;
   --text-display-lg--line-height: 1.1;
   --text-display-lg--letter-spacing: -0.02em;
-  --text-label-caps: 11px;
+  --text-label-caps: 12px;
   --text-label-caps--line-height: 1;
-  --text-label-caps--letter-spacing: 0.08em;
-  --text-body-lg: 16px;
+  --text-label-caps--letter-spacing: 0.03em;
+  --text-body-lg: 15px;
   --text-body-lg--line-height: 1.6;
   --text-code-sm: 12px;
-  --text-code-sm--line-height: 1.4;
-  --text-headline-sm: 18px;
+  --text-code-sm--line-height: 1.5;
+  --text-headline-sm: 16px;
   --text-headline-sm--line-height: 1.4;
-  --text-headline-md: 24px;
+  --text-headline-md: 22px;
   --text-headline-md--line-height: 1.3;
   --text-headline-md--letter-spacing: -0.01em;
-  --text-data-mono: 14px;
+  --text-data-mono: 13px;
   --text-data-mono--line-height: 1.5;
 }
 
-/* ── Base reset ── */
+/* ── Base ── */
 *, *::before, *::after { box-sizing: border-box; }
+body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
-/* ── Material Symbols tuning ── */
+/* ── Material Symbols ── */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
@@ -107,55 +116,50 @@
   font-variation-settings: 'FILL' 1;
 }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #0d0f12; }
-::-webkit-scrollbar-thumb { background: #262b35; border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: #3a4252; }
+/* ── Scrollbar (Light) ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
-/* ── Sidebar animation ── */
-#sidebar {
-  transition: width 0.25s cubic-bezier(0.4,0,0.2,1),
-              opacity 0.2s ease,
-              transform 0.25s cubic-bezier(0.4,0,0.2,1);
-}
-#sidebar.collapsed {
-  width: 0 !important;
-  min-width: 0 !important;
-  opacity: 0;
-  overflow: hidden;
-  pointer-events: none;
-  border-right-width: 0;
-}
+/* ── Scrollbar (Dark — sidebar) ── */
+.dark-scroll::-webkit-scrollbar-track { background: transparent; }
+.dark-scroll::-webkit-scrollbar-thumb { background: #28283e; border-radius: 4px; }
+.dark-scroll::-webkit-scrollbar-thumb:hover { background: #3a3a5e; }
 
 /* ── Cursor blink ── */
 .cursor-blink {
   display: inline-block;
   width: 2px;
   height: 1em;
-  background: #a7c8ff;
+  background: #38debb;
   margin-left: 2px;
   animation: blink 1s step-end infinite;
   vertical-align: text-bottom;
 }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-/* ── Stream token fade ── */
+/* ── Stream token ── */
 .stream-token { animation: fadeIn 0.05s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ── Agent phase badge pulse ── */
-@keyframes phasePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
+/* ── Phase badge pulse ── */
+@keyframes phasePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 .phase-active { animation: phasePulse 1.5s ease-in-out infinite; }
 
-/* ── KaTeX dark mode ── */
-.katex-dark .katex { color: #d6e3ff; font-size: 1em; }
-.katex-dark .katex-display { color: #a7c8ff; padding: 6px 0; overflow-x: auto; }
-.katex-dark .katex-display > .katex { color: #d6e3ff; }
-.katex-dark .katex .mord,
-.katex-dark .katex .mop,
-.katex-dark .katex .mbin,
-.katex-dark .katex .mrel { color: #d6e3ff; }
+/* ── KaTeX ── */
+.katex-render .katex { color: #111827; font-size: 1em; }
+.katex-render .katex-display { color: #0d7d5f; padding: 8px 0; overflow-x: auto; }
+.katex-render .katex-display > .katex { color: #111827; }
+
+/* ── Animations ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up { animation: fadeInUp 0.3s ease-out; }
+
+/* ── Float shadow (input bar) ── */
+.input-float-shadow {
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.06);
+}
