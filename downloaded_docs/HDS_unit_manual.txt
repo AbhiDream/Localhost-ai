@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Hds Unit Manual
+================================================================================
+
+--- PAGE 1: HYDRODESULPHURIZATION REACTIONS AND CATALYSTS ---
+
+The Hydrodesulphurization (HDS) unit is a catalytic process used to remove sulfur from petroleum products (naphtha, kerosene, diesel) to comply with environmental regulations (BS-VI diesel contains less than 10 ppm sulfur). The feed is mixed with hydrogen gas, preheated, and passed through a fixed-bed reactor.
+
+The reactor contains Cobalt-Molybdenum (CoMo) or Nickel-Molybdenum (NiMo) catalyst on alumina support. Operating conditions range from 320-380 deg C and 30-70 barg pressure. Sulfur compounds react with hydrogen to form hydrogen sulfide (H2S), which is separated from the liquid product in a high-pressure stripper.
+

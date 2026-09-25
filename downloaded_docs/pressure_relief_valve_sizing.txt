@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Pressure Relief Valve Sizing
+================================================================================
+
+--- PAGE 1: RELIEF VALVE DESIGN AND ORIFICE SIZING ---
+
+Pressure Relief Valves (PRVs) are sized using API RP 520 and 521 standards. The required orifice discharge area 'A' for vapor relief is: A = (W / (C * Kd * P1 * Kb * Kc)) * sqrt(T * Z / M), where W is relief flow rate, C is gas constant, Kd is discharge coefficient, P1 is relieving pressure, Kb is backpressure correction factor, Kc is combination factor, T is temperature, Z is compressibility, and M is molecular weight.
+
+Standard PRV orifice sizes are designated by letters: D (0.11 sq in), E (0.196 sq in), F (0.307 sq in), G (0.503 sq in), H (0.785 sq in), J (1.287 sq in), K (1.838 sq in), L (2.853 sq in), M (3.60 sq in), N (4.34 sq in), P (6.38 sq in), Q (11.05 sq in), R (16.0 sq in), T (26.0 sq in).
+

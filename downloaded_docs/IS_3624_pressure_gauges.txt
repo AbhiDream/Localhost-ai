@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Is 3624 Pressure Gauges
+================================================================================
+
+--- PAGE 1: ACCURACY, CALIBRATION, AND DIAL SAFETY ---
+
+IS 3624 specifies requirements for industrial dial-type pressure, vacuum, and compound gauges using Bourdon tubes, diaphragms, or bellows as sensing elements. The standard dial sizes range from 40 mm to 250 mm in diameter.
+
+Accuracy classes are defined as Class 0.25 (master calibration gauges), Class 1.0 (standard process gauges), and Class 2.5/4.0 (field indicators). For refinery service, gauges must be Class 1.0, equipped with a laminated safety glass window and a blowout disc at the back of the case to relieve pressure in case of Bourdon tube rupture.
+

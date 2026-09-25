@@ -1,0 +1,22 @@
+================================================================================
+DOCUMENT: Static Mobile Pressure Vessels Rules
+================================================================================
+
+--- PAGE 1: SCOPE, CODES, AND VESSEL APPROVAL ---
+
+The Static and Mobile Pressure Vessels (Unfired) Rules, 2016 (referred to as the SMPV Rules), govern the storage, filling, and transport of compressed gases in unfired pressure vessels. A compressed gas is defined as any gas that liquefied under pressure or remains gas under pressure exceeding 2.0 kg/cm2 at 15 deg C. This includes LPG, oxygen, nitrogen, hydrogen, and carbon dioxide.
+
+All vessels must be designed, fabricated, and tested in accordance with international codes like ASME Section VIII Division 1, or Indian Standard IS 2825. Fabricators must be registered and approved by PESO, and every vessel must carry a manufacturer's data report certified by a recognized third-party inspection agency.
+
+--- PAGE 2: SAFETY RELIEF DEVICES AND FITTINGS ---
+
+Rule 18 requires every pressure vessel to be fitted with at least two independent safety relief valves (SRVs) set to open at the design pressure. Each SRV must be sized to discharge the maximum relief load under fire exposure. Isolation valves (stop valves) are only permitted under SRVs if they are interlocked so that one SRV is always connected to the vessel.
+
+Vessels must also be equipped with double-valve drains, a pressure gauge, a temperature indicator, and a liquid level indicator (such as a magnetic level gauge or rotogage). A remote-operated emergency shutdown valve (ESD) must be installed on all liquid inlet and outlet nozzles.
+
+--- PAGE 3: PERIODIC TESTING AND COMPETENT PERSONS ---
+
+Pressure vessels must undergo periodic testing to ensure integrity. Rule 19 mandates that every vessel must be hydrostatically tested at 1.3 or 1.5 times the design pressure every 5 years by a PESO competent person. If hydrotesting is not feasible, NDT methods like acoustic emission testing (AET) or ultrasonic shear wave examination may be approved.
+
+Vessels in corrosive service must also undergo internal inspection and wall thickness measurement every 2 years. Testing certificates must be submitted to PESO to renew the operating license.
+

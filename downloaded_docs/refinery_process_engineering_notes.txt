@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Refinery Process Engineering Notes
+================================================================================
+
+--- PAGE 1: REFINERY PROCESSING SCHEMES ---
+
+Process notes cover the integration of refinery units. Separation units (CDU, VDU) feed conversion units (FCC, Hydrocracker, Delayed Coker) to maximize light distillate yields. Middle distillates are desulfurized in hydrotreaters to meet fuel specs.
+
+Catalytic Reforming (CRU) is a key process that rearranges paraffinic and naphthenic hydrocarbons in heavy naphtha into aromatic compounds (reformate) using a platinum-based catalyst to increase octane rating from ~40 to over 95.
+

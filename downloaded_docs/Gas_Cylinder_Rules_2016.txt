@@ -1,0 +1,16 @@
+================================================================================
+DOCUMENT: Gas Cylinder Rules 2016
+================================================================================
+
+--- PAGE 1: CYLINDERS AND VALVE STANDARDS ---
+
+The Gas Cylinder Rules, 2016, apply to cylinders with water capacity between 0.5 liters and 1000 liters used for compressed, liquefied, or dissolved gases. Cylinders must be manufactured to approved codes like IS 7285 and hold a license from CCOE (PESO).
+
+Cylinder valves must conform to IS 3224. Flammable gases (hydrogen, LPG, acetylene) must use left-hand threaded outlets, while non-flammable and oxidizer gases (oxygen, nitrogen) must use right-hand threaded outlets to prevent accidental cross-connections.
+
+--- PAGE 2: COLOR CODING AND PERIODIC HYDROTESTING ---
+
+Rule 11 mandates strict color-coding for cylinders: Oxygen (Black body with White neck), Hydrogen (Signal Red), Nitrogen (French Grey with Black neck), LPG (Signal Red with blue band). Cylinders must be color-coded only by the manufacturer or authorized test stations.
+
+Cylinders must undergo hydrostatic stretch testing every 5 years (3 years for toxic and corrosive gases) to check for permanent volumetric expansion. The permanent expansion must not exceed 10% of the total expansion. Tested cylinders must be stamped with the test station mark and date.
+

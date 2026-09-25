@@ -1,0 +1,16 @@
+================================================================================
+DOCUMENT: Oisd-163 Process Control Room Safety
+================================================================================
+
+--- PAGE 1: ARCHITECTURAL DESIGN AND BLAST RESISTANCE ---
+
+OISD-STD-163 outlines safety requirements for the design, construction, and safety systems of process control rooms. The control room must be designed to withstand a potential vapor cloud explosion (VCE) with a blast overpressure of 0.3 bar for a duration of 100 milliseconds.
+
+The building must be constructed of reinforced concrete, without windows on the sides facing process units. Doors must be heavy-duty blast doors equipped with self-closing mechanisms. Cable entry transits (cellars) must be sealed using certified fire-stop and gas-tight sealing modules.
+
+--- PAGE 2: POSITIVE PRESSURE VENTILATION AND HVAC CONTROLS ---
+
+To prevent the entry of toxic or flammable hydrocarbon vapors, the control room must be kept under a positive pressure of at least 5 mm water gauge relative to the outside atmosphere. The HVAC system must draw outdoor air from a stack located at least 15 meters above ground level, far from process units.
+
+Hydrocarbon and toxic gas detectors (H2S, SO2) must be installed in the HVAC intake duct. If gas is detected at 10% LEL or 5 ppm H2S, the system must automatically switch to 100% recirculation mode and close the fresh air intake dampers. Emergency air breathing systems must be available inside the control room for operators.
+

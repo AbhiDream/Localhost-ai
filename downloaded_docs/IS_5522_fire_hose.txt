@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Is 5522 Fire Hose
+================================================================================
+
+--- PAGE 1: MATERIAL SPECIFICATIONS AND PRESSURE TESTING ---
+
+IS 5522 specifies the requirements for synthetic fiber jacketed rubber-lined fire fighting delivery hoses. The hose must consist of a circular woven reinforcement jacket made of high-tenacity synthetic yarns (polyester or nylon) and an internal lining of vulcanized natural or synthetic rubber.
+
+The hose must have a smooth internal finish to minimize friction loss. Hoses must undergo pressure tests: proof pressure of 21 kg/cm2, working pressure of 15 kg/cm2, and a minimum burst pressure of 35 kg/cm2. The hose must not show any leakage, weeping, or yarn breakage during testing.
+

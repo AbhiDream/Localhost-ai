@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Hydrogen Msds
+================================================================================
+
+--- PAGE 1: CHEMICAL SAFETY AND EXPLOSION LIMITS ---
+
+Product Name: Hydrogen Gas. Hydrogen is a colorless, odorless, tasteless, non-toxic compressed gas. It is extremely flammable, with an exceptionally wide explosive range in air: LEL 4.0%, UEL 75.0%. It burns with an almost invisible, pale blue flame.
+
+Safety Hazards: Hydrogen has a very low ignition energy (0.017 mJ), meaning static sparks can easily ignite it. It is lighter than air (vapor density 0.07) and rises rapidly. Under high pressure, hydrogen can cause embrittlement of steel cylinders and pipelines, leading to catastrophic failure.
+

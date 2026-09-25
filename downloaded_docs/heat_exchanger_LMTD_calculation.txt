@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Heat Exchanger Lmtd Calculation
+================================================================================
+
+--- PAGE 1: DERIVATION OF LMTD AND AREA SIZING ---
+
+Heat exchangers are sized using the fundamental heat transfer equation: Q = U * A * F * LMTD. Q is the heat duty (kcal/h or Watts), U is the overall heat transfer coefficient (W/m2-K), A is the heat transfer area (m2), F is the configuration correction factor, and LMTD is the Log Mean Temperature Difference.
+
+For counter-current flow, LMTD is derived as: LMTD = (dT1 - dT2) / ln(dT1 / dT2), where dT1 = Th_in - Tc_out (temperature difference at hot fluid inlet) and dT2 = Th_out - Tc_in (difference at hot fluid outlet). For co-current flow, dT1 = Th_in - Tc_in and dT2 = Th_out - Tc_out. F is 1.0 for pure counter-current flow and less than 1.0 for multi-pass shell-and-tube exchangers.
+

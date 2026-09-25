@@ -1,0 +1,16 @@
+================================================================================
+DOCUMENT: Perrys Handbook Heat Transfer Fluid Flow
+================================================================================
+
+--- PAGE 1: FLUID FLOW CALCULATIONS AND HEAD LOSS ---
+
+Perry's Chemical Engineers' Handbook outlines the equations for fluid flow. Pressure drop due to friction in straight pipes is calculated using the Darcy-Weisbach equation: hf = f * (L / D) * (v^2 / (2 * g)), where hf is friction head loss, f is the friction factor, L is pipe length, D is inside diameter, v is velocity, and g is gravitational acceleration.
+
+The friction factor f is determined based on the Reynolds number (Re = D*v*rho/mu). For laminar flow (Re < 2100), f = 64/Re. For turbulent flow (Re > 4000), f is determined using the Colebrook equation or the Moody diagram based on pipe relative roughness.
+
+--- PAGE 2: CONVECTIVE AND CONDUCTIVE HEAT TRANSFER ---
+
+Heat transfer by conduction is governed by Fourier's Law: q = -k * A * (dT/dx), where k is the thermal conductivity of the material. Convective heat transfer is governed by Newton's Law of Cooling: q = h * A * (Ts - Tf), where h is the convective heat transfer coefficient.
+
+In shell-and-tube heat exchangers, the overall heat transfer coefficient U is calculated as: 1/U = 1/ho + Rfo + (do/di)*(1/hi) + Rfi + Rw, where ho and hi are shell and tube side film coefficients, Rfo and Rfi are fouling factors, and Rw is the tube wall resistance.
+

@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Mea Msds
+================================================================================
+
+--- PAGE 1: MEA PROPERTIES AND TREATING SYSTEMS ---
+
+Product Name: Monoethanolamine (MEA). MEA is a clear, viscous liquid with a mild ammoniacal odor. It is widely used in amine treating units to remove acid gases (H2S and CO2) from LPG and fuel gas streams. Flashpoint: 85 deg C (Class IIIA combustible liquid).
+
+Safety Hazards: MEA is corrosive to skin, eyes, and respiratory tract. It reacts violently with strong oxidizers and copper alloys (causing corrosion). Operators must wear chemical resistant gloves and safety goggles. Dispose of spent amine residues in certified incinerators.
+

@@ -1,0 +1,22 @@
+================================================================================
+DOCUMENT: Petroleum Rules 2002
+================================================================================
+
+--- PAGE 1: CLASSIFICATIONS AND LICENSING UNDER THE PETROLEUM ACT ---
+
+The Petroleum Rules, 2002, enacted under the Petroleum Act of 1934, are the primary legal framework regulating the storage, transport, import, and refining of petroleum products in India. The rules are administered by the Petroleum and Explosives Safety Organisation (PESO), headed by the Chief Controller of Explosives (CCOE).
+
+Petroleum is classified into three categories based on flashpoint: Class A (liquids having flashpoint below 23 deg C, e.g., gasoline, crude oil, naphtha), Class B (flashpoint 23 deg C and above but below 65 deg C, e.g., diesel, kerosene, ATF), and Class C (flashpoint 65 deg C and above but below 93 deg C, e.g., LDO, furnace oil). A PESO storage license is mandatory for storing volumes exceeding the exempted quantities (30 liters for Class A, 2500 liters for Class B/C).
+
+--- PAGE 2: RULES FOR TRANSPORT AND ROAD TANKERS ---
+
+Rule 63 through 80 detail requirements for transport of petroleum by road. All road tankers must be designed and constructed to approved codes (such as IS 2825 or ASME Sec VIII) and licensed by PESO. The vehicle chassis must be equipped with a spark arrestor on the engine exhaust, which must face forward.
+
+Each tanker compartment must be fitted with emergency discharge valves that can be tripped from a remote lever. The tanker must carry two 9 kg DCP fire extinguishers, and the electrical wiring must be armored, fused, and run through rigid conduits. The maximum speed of the vehicle must be governed to 50 km/h.
+
+--- PAGE 3: STORAGE TANK INSTALLATIONS AND DYKE RULES ---
+
+Rule 116 outlines the layout requirements for storage tanks. Every aboveground tank must be installed within a masonry or concrete dyke wall. The dyke capacity must be at least 100% of the volume of the largest tank in the enclosure. No pipelines or electrical cables other than those connected to the tanks are permitted inside the dyke.
+
+The dyke enclosure must be kept free of vegetation and dry grass. Drainage valves must be installed outside the dyke wall, and they must remain locked in the closed position, only opened under supervision to drain clean rainwater.
+

@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Asme B31.3 Process Piping Summary
+================================================================================
+
+--- PAGE 1: PROCESS PIPING DESIGN AND WALL THICKNESS ---
+
+ASME B31.3 is the process piping design code used in petroleum refineries, chemical plants, and oil terminals. It defines piping design conditions, allowable stresses, joint quality factors, and thermal expansion limits.
+
+The minimum wall thickness 'tm' of straight pipe under internal pressure is: tm = (P * D) / (2 * (S * E * W + P * Y)) + mechanical_allowances. Here, P is the design gauge pressure, D is the outside diameter, S is the allowable stress, E is the quality factor, W is the weld strength reduction factor, and Y is a coefficient based on material type and design temperature.
+

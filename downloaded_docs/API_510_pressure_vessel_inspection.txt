@@ -1,0 +1,16 @@
+================================================================================
+DOCUMENT: Api 510 Pressure Vessel Inspection
+================================================================================
+
+--- PAGE 1: SCOPE, INSPECTION FREQUENCIES, AND MAWP ---
+
+API 510 is the international Pressure Vessel Inspection Code governing in-service inspection, repair, alteration, and re-rating of pressure vessels. It applies to vessels in the petroleum, petrochemical, and chemical processing industries that have been placed in service.
+
+External inspections must be performed every 5 years or at the same interval as the internal/on-stream inspection, whichever is less. Internal or on-stream inspections must be performed at the half-life of the vessel (Remaining Life / 2) or every 10 years, whichever is shorter. The Maximum Allowable Working Pressure (MAWP) must be recalculated based on measured wall thickness.
+
+--- PAGE 2: CORROSION RATE AND REMAINING LIFE CALCULATIONS ---
+
+The corrosion rate (CR) must be calculated to estimate remaining life. The short-term corrosion rate is: CR = (t_previous - t_actual) / time_interval. The long-term corrosion rate is: CR = (t_initial - t_actual) / time_interval_in_service.
+
+The remaining life (RL) of the vessel in years is calculated as: RL = (t_actual - t_min) / CR, where t_actual is the measured thickness at the thinnest point, and t_min is the minimum thickness required for the design pressure and temperature. Thickness measurements must be recorded at designated Thickness Monitoring Locations (TMLs).
+

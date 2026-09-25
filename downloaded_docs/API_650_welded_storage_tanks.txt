@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Api 650 Welded Storage Tanks
+================================================================================
+
+--- PAGE 1: STORAGE TANK DESIGN AND SHELL CALCULATIONS ---
+
+API 650 is the global standard for welded steel tanks for oil storage. It governs vertical, cylindrical, aboveground, closed- and open-top tanks of various sizes and capacities for operating pressures up to 2.5 psi (17 kPa) and temperatures up to 93 deg C.
+
+The tank shell thickness is designed block-by-block using the One-Foot Method: t = (4.9 * D * (H - 0.3) * G) / Sd + CA, where t is the shell thickness in mm, D is the tank diameter in meters, H is the design liquid height in meters, G is the specific gravity of the liquid, Sd is the allowable design stress of the steel plate, and CA is the corrosion allowance.
+

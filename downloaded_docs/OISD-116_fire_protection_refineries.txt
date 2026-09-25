@@ -1,0 +1,34 @@
+================================================================================
+DOCUMENT: Oisd-116 Fire Protection Refineries
+================================================================================
+
+--- PAGE 1: FIRE WATER SUPPLY AND STORAGE SYSTEMS ---
+
+OISD-STD-116 defines the fundamental fire protection philosophy and design criteria for Indian petroleum refineries and petrochemical complexes. The fire water system is the primary defense line. The refinery must maintain a continuous, dedicated fire water storage capacity sufficient to combat the single largest fire risk for a duration of at least 4 hours.
+
+The water storage tanks must be at least two in number, constructed of steel or concrete, and designed for easy cleaning and maintenance. The tanks must be supplied from a reliable, continuous water source, such as a river, canal, or seawater intake. The fire water reservoir must be kept full at all times, with automatic level monitoring and low-level alarms in the main fire station.
+
+--- PAGE 2: FIRE WATER PUMPING STATION AND HEADER PRESSURE ---
+
+The fire water pumping station must be located at a safe distance (minimum 60 meters) from any process unit or storage area. The pump network must consist of a combination of electric-motor-driven pumps and standby diesel-engine-driven pumps. The total pumping capacity must be designed to meet the maximum water flow rate required for the worst-case fire scenario, plus a 50% standby capacity.
+
+A system of jockey pumps must be installed to maintain a constant static pressure of 7.0 to 10.5 kg/cm2 in the fire water ring main. The main fire pumps must start automatically when the header pressure drops below 5.5 kg/cm2. The diesel engines must be capable of starting automatically in the event of an electrical power failure and must have fuel storage sufficient for 8 hours of continuous operation.
+
+--- PAGE 3: HYDRANT NETWORKS AND DISTRIBUTION DESIGN ---
+
+The fire water network must be designed as a closed loop ring main system around all process blocks, utility zones, and storage tank areas. The piping material must be carbon steel or internally coated steel buried at least 1 meter below ground level to protect it from mechanical damage and thermal radiation. The loop must be equipped with isolation valves at strategic points to allow maintenance without disabling the entire loop.
+
+Double-headed hydrant valves must be installed at intervals of 30 meters in process units and 45 meters in storage yards. Hydrants must be located between 15 and 30 meters from the equipment they protect. Hose cabinets containing two 15-meter synthetic jacketed hoses and a standard fog/jet nozzle must be placed adjacent to every hydrant station.
+
+--- PAGE 4: FIXED FOAM SYSTEMS FOR STORAGE TANKS ---
+
+Atmospheric storage tanks containing Class A and Class B petroleum products must be equipped with fixed or semi-fixed foam systems. For floating roof tanks, foam pourers or foam dams must be installed to cover the rim seal area. For fixed-roof tanks, foam chambers must be mounted on the top shell to deliver foam directly onto the liquid surface.
+
+The foam concentrate storage must be located in a safe zone and sized to supply foam solution at a rate of 5 to 8 liters per minute per square meter of liquid surface for at least 30 minutes. The foam system must use Aqueous Film Forming Foam (AFFF) or Fluoroprotein foam concentrate, and must be tested annually using test loops that do not discharge foam into the active tank.
+
+--- PAGE 5: HIGH VOLUME LONG RANGE (HVLR) MONITORS ---
+
+Refineries must install High Volume Long Range (HVLR) water/foam monitors in tank farm areas. These monitors must have a minimum capacity of 1000 GPM (3785 LPM) and be capable of being operated remotely from a safe distance outside the tank dyke. The monitors must be able to throw water or foam to a height of at least 30 meters and a horizontal distance of 60 meters.
+
+HVLR monitors are crucial for cooling adjacent tanks during a fire and for blanketing large hydrocarbon spills with foam to prevent ignition. They must be connected to both the fire water ring main and a fixed foam induction skid.
+

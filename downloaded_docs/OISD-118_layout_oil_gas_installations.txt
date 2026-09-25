@@ -1,0 +1,28 @@
+================================================================================
+DOCUMENT: Oisd-118 Layout Oil Gas Installations
+================================================================================
+
+--- PAGE 1: LAYOUT PHILOSOPHY AND BLOCK DESIGN ---
+
+OISD-STD-118 specifies the safety layout criteria for oil and gas installations, including petroleum refineries, petrochemical plants, gas processing terminals, and pipeline stations. The primary objective is to separate potential ignition sources from combustible materials and protect personnel from thermal radiation and overpressure.
+
+Refineries must be laid out in a grid pattern divided by primary and secondary roads. Block sizing must be designed to isolate process units, utility plants, storage tanks, and administrative structures. Primary roads must have a minimum clear width of 10 meters and must run continuously without dead ends to facilitate the rapid movement of fire tenders.
+
+--- PAGE 2: PROCESS UNIT CLEARANCES AND INTER-DISTANCES ---
+
+Process units containing high-temperature and high-pressure equipment, such as the Crude Distillation Unit (CDU), Fluid Catalytic Cracker (FCC), and Hydrogen generation unit, must be located in the central core of the refinery. A minimum clearance of 60 meters must be maintained between any process block and the refinery boundary wall.
+
+The distance between two adjacent process blocks must not be less than 30 meters. Fired heaters and furnaces must be placed upwind of process units and storage tanks, keeping a minimum distance of 45 meters from any potential hydrocarbon vapor release point.
+
+--- PAGE 3: STORAGE TANK SEPARATION DISTANCES ---
+
+Storage tanks containing Class A and Class B petroleum products must be grouped in tank farms and surrounded by concrete or compacted earth dyke walls. The capacity of the dyke enclosure must be equal to the capacity of the largest tank in the enclosure plus 10% to contain spills.
+
+The minimum distance between two adjacent tanks containing Class A or Class B petroleum must be half the diameter of the larger tank (D/2) for floating roof tanks, and three-quarters of the diameter (3D/4) for fixed-roof tanks. The distance from any tank shell to the inside toe of the dyke wall must not be less than 15 meters.
+
+--- PAGE 4: CONTROL ROOM AND ADMINISTRATIVE BUILDINGS ---
+
+Control rooms house the critical Distributed Control System (DCS) and emergency shutdown controls. They must be situated in a safe, non-hazardous zone, outside the blast-prone areas of process units. The distance between a control room and a process unit must be at least 30 meters.
+
+Control rooms must be constructed as blast-resistant concrete structures designed to withstand a gas explosion overpressure of 0.3 bar. Administrative buildings, laboratories, workshops, and canteens must be located far upwind of the process blocks, with a minimum separation distance of 90 meters from any process equipment.
+

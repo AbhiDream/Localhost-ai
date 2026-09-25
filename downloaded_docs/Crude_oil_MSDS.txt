@@ -1,0 +1,16 @@
+================================================================================
+DOCUMENT: Crude Oil Msds
+================================================================================
+
+--- PAGE 1: PRODUCT IDENTIFICATION AND HAZARD PROFILING ---
+
+Product Name: Petroleum Crude Oil. Synonyms: Earth oil, rock oil. Crude oil is a complex mixture of paraffinic, naphthenic, and aromatic hydrocarbons, along with sulfur, nitrogen, and oxygen compounds. It is a highly flammable, dark brown to black liquid with a strong hydrocarbon odor.
+
+Flashpoint: -20 deg C to 35 deg C. Autoignition Temperature: 260 deg C. Flammable Limits: LEL 0.6%, UEL 8.0%. Inhalation of high vapor concentrations can cause headaches, dizziness, nausea, and central nervous system depression. Contains benzene, a known human carcinogen.
+
+--- PAGE 2: FIRE FIGHTING AND SPILL CONTAINMENT ---
+
+Fire hazards: Extremely flammable liquid. Vapors are heavier than air and can travel long distances to an ignition source. Firefighting media: Use foam, dry chemical powder, or carbon dioxide. Water spray should be used to cool fire-exposed storage tanks, but direct water jets must not be applied to burning crude to prevent boil-over.
+
+Spill response: Eliminate all ignition sources. Evacuate non-essential personnel. Contain spills using earth or sand dykes. Prevent product from entering sewers or watercourses. Absorb liquid with non-combustible absorbent materials and dispose of in accordance with hazardous waste regulations.
+

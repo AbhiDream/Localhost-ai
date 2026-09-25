@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Fcc Operation
+================================================================================
+
+--- PAGE 1: FCC REACTOR AND REGENERATOR OPERATIONS ---
+
+The Fluidized Catalytic Cracking (FCC) unit converts heavy atmospheric residue or vacuum gas oil (VGO) into high-octane gasoline, LPG, and light cycle oil (LCO). The process uses a zeolite-based micro-spherical catalyst that behaves like a fluid when aerated with steam or air.
+
+The unit consists of a riser reactor where preheated feed meets hot regenerated catalyst at 520-540 deg C, causing instant cracking. The cracked vapors rise and carry catalyst to the cyclone separators, where the catalyst is separated and falls into the stripper. The cracked vapors exit to the fractionator. The spent catalyst is sent to the regenerator to burn off coke deposits.
+

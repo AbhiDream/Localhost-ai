@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Api 580 Risk Based Inspection
+================================================================================
+
+--- PAGE 1: RISK-BASED INSPECTION PRINCIPLES ---
+
+API 580 outlines the fundamental guidelines for establishing a Risk-Based Inspection (RBI) program in refineries. RBI is an integrated methodology that uses risk as a basis for prioritizing and managing the inspection program for pressure vessels, piping, and storage tanks.
+
+Risk is defined as the product of the Probability of Failure (POF) and the Consequence of Failure (COF): Risk = POF * COF. POF is determined by the active damage mechanisms (corrosion, stress corrosion cracking, fatigue) and the effectiveness of the inspection program. COF is determined by the fluid toxicity, volume, flashpoint, and cost of damage.
+

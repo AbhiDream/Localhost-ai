@@ -1,0 +1,16 @@
+================================================================================
+DOCUMENT: Api 570 Piping Inspection
+================================================================================
+
+--- PAGE 1: PIPING CLASSES AND INSPECTION INTERVALS ---
+
+API 570 covers inspection, rating, repair, and alteration of in-service metallic and fiberglass-reinforced plastic (FRP) piping systems. Piping systems are classified into three classes based on the hazard level of the process fluid: Class 1 (highest hazard: flammable gases, toxic chemicals, anhydrous acids), Class 2 (moderate hazard: hydrocarbons, low-pressure steam, sour water), and Class 3 (lowest hazard: non-flammable liquids, utility water, air).
+
+Class 1 piping requires thickness measurement inspection every 5 years and visual inspection every 5 years. Class 2 requires thickness testing every 10 years, and Class 3 every 10 years for thickness with 15-year visual inspection. Thickness measurement is conducted using ultrasonic testing (UT) or profile radiography (RT).
+
+--- PAGE 2: CORROSION RATES AND PIPING INTEGRITY ---
+
+Like API 510, corrosion rates are calculated as short-term or long-term. The thinnest point on a pipe spool dictates the remaining life of that entire circuit. Weld joints, elbows, and tees are highly susceptible to localized corrosion (such as erosion-corrosion or flow-accelerated corrosion) and must contain multiple TMLs.
+
+Piping repairs must conform to API 570 requirements. Temporary repairs (such as split sleeves or leak clamps) must be replaced with permanent welded repairs during the next scheduled shutdown.
+

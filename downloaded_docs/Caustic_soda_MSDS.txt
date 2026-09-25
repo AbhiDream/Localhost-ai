@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Caustic Soda Msds
+================================================================================
+
+--- PAGE 1: CORROSIVENESS AND FIRST AID ---
+
+Product Name: Caustic Soda Solution (Sodium Hydroxide, NaOH 33-50%). It is a colorless, odorless, highly alkaline liquid. It is non-flammable but highly corrosive to all body tissues. Contact with eyes causes permanent blindness; skin contact causes severe chemical burns.
+
+PPE Requirements: Full chemical splash goggles, face shield, neoprene gloves, PVC apron, and rubber boots. First Aid: In case of contact, immediately flush eyes or skin with plenty of water for at least 30 minutes while removing contaminated clothing. Seek medical attention immediately.
+

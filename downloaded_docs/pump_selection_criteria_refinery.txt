@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Pump Selection Criteria Refinery
+================================================================================
+
+--- PAGE 1: PUMP CLASSIFICATION AND NPSH SIZING ---
+
+Refineries use centrifugal pumps for high-flow low-viscosity service, and positive displacement pumps for low-flow high-viscosity or metering services. Centrifugal pumps must conform to API 610 standards to ensure mechanical integrity in high-temperature, hydrocarbon services.
+
+Net Positive Suction Head Available (NPSHa) must exceed the Net Positive Suction Head Required (NPSHr) by the pump: NPSHa = P_suction_tank + H_static_head - P_vapor_pressure - H_friction_loss. A safety margin of at least 1.0 meter or 10% of NPSHr, whichever is greater, must be maintained to prevent impeller cavitation.
+

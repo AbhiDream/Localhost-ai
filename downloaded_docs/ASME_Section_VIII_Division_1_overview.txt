@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Asme Section Viii Division 1 Overview
+================================================================================
+
+--- PAGE 1: PRESSURE VESSEL DESIGN RULES ---
+
+ASME Boiler and Pressure Vessel Code (BPVC) Section VIII Division 1 provides the design, fabrication, inspection, and testing rules for pressure vessels operating at pressures exceeding 15 psi (1 bar). It is the most widely adopted pressure vessel code globally.
+
+Design rules cover cylindrical shells, spherical shells, and various head types including ellipsoidal (2:1), torispherical, and hemispherical heads. Allowable stress values are listed in ASME Section II Part D, which incorporates a safety factor of 3.5 on tensile strength.
+

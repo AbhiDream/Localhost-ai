@@ -1,0 +1,16 @@
+================================================================================
+DOCUMENT: Cdu Operation Manual
+================================================================================
+
+--- PAGE 1: CDU UNIT PROCESS DESCRIPTION ---
+
+The Crude Distillation Unit (CDU) is the entry gate of the refinery. It is a physical separation process that splits crude oil into various fractions based on boiling point ranges. The feed crude is pumped from storage tanks, passes through a series of heat exchangers (preheat train) where it absorbs heat from hot product streams, and enters the electrostatic desalter.
+
+The desalter mixes crude with 4-6% wash water and uses a high-voltage electrostatic field to coalesce and separate water droplets containing inorganic salts (NaCl, MgCl2, CaCl2). Desalted crude is further heated in a preheat train and enters the direct-fired crude furnace, where it is partially vaporized at 340-360 deg C before entering the atmospheric distillation column.
+
+--- PAGE 2: FRACTIONATION AND COLUMN CONTROL ---
+
+The atmospheric column contains 40 to 50 fractionation trays. Vapor rises and liquid flows down, facilitating mass transfer. Naphtha vapors exit the column top, are condensed, and split into reflux (returned to the column) and product. Side streams are drawn at intermediate trays: Kerosene (140-200 deg C), Light Gas Oil (200-290 deg C), and Heavy Gas Oil (290-340 deg C).
+
+Pumparound liquid draws are taken from intermediate sections, cooled in exchangers, and returned to trays above to remove excess heat and optimize the column's vapor-liquid traffic. The bottom stream (atmospheric residue, boiling point >340 deg C) is pumped to the Vacuum Distillation Unit (VDU) for further processing.
+

@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Nptel Refinery Lectures
+================================================================================
+
+--- PAGE 1: REFINING OVERVIEW AND INDIAN PETROLEUM SECTOR ---
+
+NPTEL chemical engineering lectures cover crude oil composition and refining technologies. Crudes are analyzed using True Boiling Point (TBP) distillation curves to determine yield potential. Indian refineries process a mix of sweet and sour crudes from domestic fields (Bombay High) and imports.
+
+Key thermal processes include Delayed Coking, which processes vacuum residue into petcoke, gas, and coker distillates, and Visbreaking, which reduces the viscosity of heavy residue to produce fuel oil.
+

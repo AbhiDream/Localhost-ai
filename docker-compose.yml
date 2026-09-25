@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+
+  # ── Ollama Model Server ──────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: mrpl_ollama
+    runtime: nvidia          # remove if no GPU; CPU-only fallback works
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    # Network is intentionally internal — no egress after model pull
+    networks:
+      - mrpl_net
+
+  # ── FastAPI Backend ──────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mrpl_backend
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - ./backend/outputs:/app/outputs
+      - ./backend/uploads:/app/uploads
+      - ./backend/chroma_db:/app/chroma_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    networks:
+      - mrpl_net
+
+  # ── React Frontend ───────────────────────────────────────────
+  frontend:
+    image: node:20-alpine
+    container_name: mrpl_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - mrpl_net
+
+volumes:
+  ollama_data:
+
+networks:
+  mrpl_net:
+    driver: bridge
+    # To enforce full air-gap, replace with:
+    # driver: none
+    # and set --network=none in docker run

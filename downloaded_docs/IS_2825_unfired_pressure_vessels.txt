@@ -1,0 +1,22 @@
+================================================================================
+DOCUMENT: Is 2825 Unfired Pressure Vessels
+================================================================================
+
+--- PAGE 1: SCOPE, MATERIALS, AND DESIGN MARGINS ---
+
+IS 2825 is the Indian Standard code for unfired pressure vessels. It covers design, construction, inspection, and testing of fusion-welded vessels made of carbon, low-alloy, and high-alloy steels. It defines design pressures from 1 bar up to 200 bar and design temperatures from -100 deg C to 500 deg C.
+
+The code establishes a safety factor of 4.0 on the minimum tensile strength of the material, and 1.5 on the yield strength at the design temperature. Materials must be traceably certified, and carbon steel plates must be in normalized or stress-relieved condition for low-temperature service.
+
+--- PAGE 2: WALL THICKNESS AND SHELL CALCULATION ---
+
+The minimum thickness of cylindrical shells under internal pressure is calculated using the thin shell formula: t = (P * D) / (2 * f * J - P) + C. Here, P is the design pressure in kg/cm2, D is the internal diameter in mm, f is the allowable stress in kg/cm2, J is the joint efficiency factor, and C is the corrosion allowance in mm.
+
+The joint efficiency factor J is determined by the extent of non-destructive testing on the longitudinal weld seams: J = 1.00 for 100% radiographic inspection, J = 0.85 for spot radiography, and J = 0.70 for non-radiographed vessels. The minimum thickness for any shell plate must not be less than 6 mm.
+
+--- PAGE 3: HYDROSTATIC AND PNEUMATIC TESTING ---
+
+Upon completion of fabrication and weld stress-relieving (post-weld heat treatment, PWHT), the vessel must undergo a hydrostatic test. The hydrotest pressure must be at least 1.3 times the design pressure multiplied by the ratio of allowable stress at test temperature to design temperature.
+
+The test pressure must be held for at least 30 minutes, followed by a thorough inspection of all welds and nozzles for leaks or deformation. Pneumatic testing is only allowed if hydrotesting is impossible due to support weight limits or process contamination, and it must be conducted under strict safety precautions with gradual pressurization.
+

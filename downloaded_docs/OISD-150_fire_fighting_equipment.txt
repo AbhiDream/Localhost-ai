@@ -1,0 +1,16 @@
+================================================================================
+DOCUMENT: Oisd-150 Fire Fighting Equipment
+================================================================================
+
+--- PAGE 1: PORTABLE FIRE EXTINGUISHERS ---
+
+OISD-STD-150 establishes requirements for portable, mobile, and specialized fire-fighting equipment. Every process unit, utility block, and storage tank farm must be equipped with portable fire extinguishers suitable for the class of fire expected in that area.
+
+Class A fires (wood, paper) require water-type or dry chemical powder (DCP) extinguishers. Class B fires (hydrocarbons) require DCP, carbon dioxide (CO2), or foam extinguishers. Class C fires (electrical) require CO2 or clean-agent gas extinguishers. Extinguishers must be inspected monthly and hydrotested every 3 years.
+
+--- PAGE 2: MOBILE FIRE TENDERS AND FLEET REQUIREMENTS ---
+
+The refinery must maintain a fully equipped, dedicated fire station with a fleet of fire tenders. The minimum fleet size is determined by the refinery's crude capacity. Typically, a large refinery must maintain at least 4 foam tenders, 2 water tenders, 1 emergency rescue vehicle, and 1 trailer pump.
+
+Foam tenders must carry at least 3000 liters of foam concentrate and be equipped with high-capacity pumps (minimum 4000 LPM) and roof-mounted foam monitors. The emergency rescue vehicle must carry breathing apparatus, cutting tools, gas detectors, and chemical splash suits.
+

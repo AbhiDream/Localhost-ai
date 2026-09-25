@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Is 9178 Explosion Proof Equipment
+================================================================================
+
+--- PAGE 1: HAZARDOUS ZONES AND EXPLOSION PROTECTION ---
+
+IS 9178 provides the guidelines for selection and installation of electrical equipment in hazardous areas where explosive gas atmospheres are present. Areas are classified into Zone 0 (explosive gas present continuously), Zone 1 (present likely during normal operation), and Zone 2 (present unlikely, or only for short periods).
+
+Electrical equipment must use certified protection concepts: Flameproof (Ex d) for enclosures that contain an explosion, Increased Safety (Ex e) to prevent spark generation, Intrinsic Safety (Ex i) limiting energy below ignition levels, and Pressurized (Ex p) to purge flammable gas. Zone 0 allows only Ex ia equipment, Zone 1 allows Ex d, Ex e, Ex ib, and Zone 2 allows Ex n.
+

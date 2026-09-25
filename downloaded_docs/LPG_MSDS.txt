@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Lpg Msds
+================================================================================
+
+--- PAGE 1: HAZARD PROFILE AND SAFE HANDLING ---
+
+Product Name: Liquefied Petroleum Gas (LPG). LPG is a mixture of propane and butane compressed into liquid form. It is colorless, odorless (odorized with ethyl mercaptan for leak detection), and extremely flammable. Flashpoint: -104 deg C. LEL: 1.8%, UEL: 9.5%.
+
+Safety Hazards: LPG is heavier than air (vapor density 1.5) and will accumulate in low-lying areas, drains, and pits, creating a severe explosion risk. Contact with liquid causes severe frostbite (cold burns) due to rapid evaporative cooling. Inhalation of vapors causes asphyxiation by displacing oxygen.
+

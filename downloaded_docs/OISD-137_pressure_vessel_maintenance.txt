@@ -1,0 +1,22 @@
+================================================================================
+DOCUMENT: Oisd-137 Pressure Vessel Maintenance
+================================================================================
+
+--- PAGE 1: SCOPE AND MECHANICAL INTEGRITY ---
+
+OISD-STD-137 establishes guidelines for the inspection, testing, and maintenance of pressure vessels and columns in petroleum refineries and petrochemical complexes. It covers vessels operating under internal pressure (above 0.5 kg/cm2) or vacuum, handling hazardous, flammable, and corrosive fluids.
+
+The objective of the maintenance program is to prevent structural failures, shell thinnings, and nozzle cracks. Refineries must maintain a detailed mechanical history folder for every vessel, containing design drawings, material test reports, weld records, and corrosion history.
+
+--- PAGE 2: INSPECTION FREQUENCIES AND INTERVALS ---
+
+Pressure vessels must undergo external visual inspection every 2 years to check for insulation damage, structural support corrosion, paint deterioration, and nozzle leaks. Internal inspection must be carried out every 5 years to check for internal corrosion, erosion, pitting, tray damage, and weld cracks.
+
+If a vessel is in highly corrosive service (e.g., sour water stripers or crude desalter vessels), the internal inspection frequency must be increased to every 2 years. Hydrostatic pressure testing must be performed at 1.3 or 1.5 times the maximum allowable working pressure (MAWP) every 10 years.
+
+--- PAGE 3: NON-DESTRUCTIVE TESTING (NDT) METHODS ---
+
+Ultrasonic Thickness (UT) measurement is the primary tool for monitoring corrosion rates. Thickness measurements must be taken at pre-determined Thickness Monitoring Locations (TMLs) on the shell, heads, and nozzles. Corrosion rates must be calculated annually.
+
+Other NDT methods include Dye Penetrant Testing (DPT) and Magnetic Particle Testing (MPT) for surface crack detection in weld joints, Radiographic Testing (RT) for volumetric weld inspection, and positive material identification (PMI) during repairs to verify material grades.
+

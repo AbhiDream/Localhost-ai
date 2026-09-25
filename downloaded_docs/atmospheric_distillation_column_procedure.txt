@@ -1,0 +1,10 @@
+================================================================================
+DOCUMENT: Atmospheric Distillation Column Procedure
+================================================================================
+
+--- PAGE 1: DISTILLATION OPERATIONS AND STRIPPING STEAM ---
+
+The atmospheric distillation column separates preheated crude into fractions. Stripping steam is injected at the bottom of the column and in side strippers to lower the partial pressure of hydrocarbons, allowing heavy fractions to vaporize at lower temperatures and preventing thermal cracking.
+
+Reflux control is critical: too high reflux causes flooding on upper trays, while too low reflux results in poor product separation (overlap of boiling points). Column pressure is maintained at 1.2 to 1.5 barg to stabilize fractionation.
+

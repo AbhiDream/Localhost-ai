@@ -1,0 +1,34 @@
+================================================================================
+DOCUMENT: Oisd-105 Loading Unloading Petroleum
+================================================================================
+
+--- PAGE 1: SCOPE, APPLICATION, AND REGULATORY CONTEXT ---
+
+This standard, OISD-STD-105, specifies the minimum safety requirements and standards for the design, layout, operation, and maintenance of loading and unloading facilities for petroleum products in refinery terminals, distribution depots, pipeline terminals, and marine transfer setups. The guidelines outlined herein are mandatory under the Petroleum Rules and are designed to prevent fires, explosions, static discharge incidents, and vapor emissions during bulk transport operations.
+
+Refineries handle massive volumes of Class A (flashpoint below 23 deg C), Class B (flashpoint 23 to 65 deg C), and Class C (flashpoint 65 to 93 deg C) petroleum products. The transfer of these volatile liquids from stationary storage tanks to mobile tanks (road tank trucks, rail tank wagons, and ocean-going barges/vessels) presents one of the highest risks of ignition in the refinery lifecycle. This standard enforces strict boundaries, layout distances, and operational discipline to control these risks.
+
+--- PAGE 2: DESIGN AND LAYOUT OF LOADING GANTRIES ---
+
+Road tank truck loading gantries must be located in a dedicated zone with a minimum clearance of 30 meters from the refinery boundary wall and at least 45 meters from any process unit or fired heater. The gantry must be designed as a open-sided steel structure with concrete paving that is sloped toward a dedicated oily water sewer (OWS) drain to contain spills.
+
+The distance between two adjacent road loading bays (center-to-center) must not be less than 6 meters for single-sided gantries and 10 meters for double-sided gantries to allow free passage of emergency vehicles. Rail loading gantries require similar clearances, with track grids isolated electrically from the main railway lines using insulated rail joints to prevent stray current propagation.
+
+--- PAGE 3: EARTHING, BONDING, AND STATIC ELECTRICITY PROTECTION ---
+
+Static electricity is the primary cause of ignition during petroleum loading. All metal components of the loading gantry, including the overhead structure, pipelines, valves, and loading arms, must be connected to a common earthing grid with an earth resistance of less than 4 ohms. Earthing electrodes must be inspected and tested quarterly.
+
+Before starting any loading operation, a dedicated bonding cable must be connected to the truck chassis using a heavy-duty brass clamp to equalize the electrical potential. The bonding connection must remain intact throughout the loading process and must not be disconnected until the loading arm is fully withdrawn, the fill opening closed, and any accumulated vapors allowed to disperse for at least 2 minutes. Earthing and bonding systems must feature automatic interlocks that halt product pump operation if the bonding connection is broken.
+
+--- PAGE 4: OPERATIONS, FILLING RATES, AND FLOW VELOCITY CONTROL ---
+
+Product transfer velocities must be strictly controlled to prevent static charge generation due to turbulence. The initial filling rate for Class A and B products must not exceed 1 meter per second until the outlet of the loading arm is completely submerged in the liquid. Once submerged, the velocity may be gradually increased, but must never exceed 4.5 meters per second.
+
+Operators must perform pre-loading checks including verifying that the vehicle holds a valid PESO license, checking that the engine is switched off, handbrakes are fully engaged, and wheel chocks are placed. Splash filling of Class A and Class B products is strictly prohibited; all filling must be conducted via bottom loading arms or long dip pipes extending to within 100 mm of the bottom of the truck compartment.
+
+--- PAGE 5: FIRE PROTECTION AND EMERGENCY RESPONSE ---
+
+The loading gantry must be protected by a semi-fixed water spray system or a medium expansion foam system. High-volume foam monitors must be installed at both ends of the gantry to cover the entire structure. Dry chemical powder (DCP) extinguishers of 9 kg and 75 kg capacity must be positioned at every second loading bay.
+
+Quick Shut-Off Valves (QSOV) must be installed on each product feed line at a distance of 15 meters from the gantry. Emergency Shutdown (ESD) buttons must be provided at the gantry deck, at the QSOV station, and at the control room. Actuating any ESD button must instantly trip the loading pumps, close all QSOVs, isolate electrical power to the gantry, and activate the refinery fire alarm system.
+
