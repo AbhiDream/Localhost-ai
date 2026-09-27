@@ -48,6 +48,8 @@ class WorkbenchState(TypedDict):
     rag_context: str                    # retrieved knowledge-base context
     rag_chunks: List[dict]              # metadata for retrieved chunks
     code: str                           # latest generated Python code
+    last_code: Optional[str]            # stored code for reference
+    conversation_summary: Optional[str] # sliding summary of older turns
     sandbox_output: str                 # stdout from sandbox
     sandbox_stderr: str                 # stderr / error trace from sandbox
     error_count: int                    # self-correction attempts so far
@@ -113,44 +115,91 @@ def _extract_code_blocks(text: str) -> list[str]:
 
 async def router_node(state: WorkbenchState) -> WorkbenchState:
     """
-    Classify the incoming prompt into one of:
-      code_execution | vision_analysis | document_drafting
-    Updates state["task_type"] in-place.
+    Classify the incoming prompt using Phi-3.5 and recent conversation history.
+    Summarize older messages if history exceeds 20 messages.
     """
-    # Ensure user_prompt is synced from the latest message
-    prompt = state["user_prompt"]
+    messages = state["messages"]
+    summary = state.get("conversation_summary", "")
+    msgs_to_remove = []
+
+    # 1. Summarize if history is too long (Part 5)
+    if len(messages) > 20:
+        to_summarize = messages[:-6]
+        prompt = "Summarize the following conversation history concisely:\n"
+        for m in to_summarize:
+            prompt += f"{m.type}: {m.content}\n"
+        if summary:
+            prompt = f"Previous summary: {summary}\n\n" + prompt
+            
+        summary_payload = {
+            "model": MODELS["reasoning"]["tag"],
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": False,
+            "options": {"temperature": 0.2}
+        }
+        import httpx
+        try:
+            async with httpx.AsyncClient(base_url=OLLAMA_BASE_URL, timeout=60) as client:
+                r = await client.post("/api/chat", json=summary_payload)
+                summary = r.json().get("message", {}).get("content", summary)
+        except Exception as e:
+            pass
+            
+        from langchain_core.messages import RemoveMessage
+        msgs_to_remove = [RemoveMessage(id=m.id) for m in to_summarize if m.id]
+
+    # Vision check short-circuit
     has_image = bool(state.get("images"))
-    has_pdf = bool(state.get("pdf_b64"))
-
-    # Vision: always when image is attached
     if has_image:
-        return {"task_type": "vision_analysis", "phases_completed": ["classify"]}
+        return {"task_type": "vision_analysis", "phases_completed": ["classify"], "conversation_summary": summary, "messages": msgs_to_remove}
 
-    lower = prompt.lower()
+    # 2. LLM Routing using recent context (Part 2)
+    recent_context = ""
+    for m in messages[-6:]:
+        recent_context += f"{m.type}: {m.content}\n"
+        
+    last_code = state.get("last_code", "")
+    
+    router_prompt = f"""You are a routing assistant. Classify the user's latest request into exactly one category:
+- "code_execution": Writing, modifying, fixing code. Also applies to "same code", "in C", "add error handling".
+- "vision_analysis": Analyzing images or pictures.
+- "document_drafting": General questions, report writing, summaries, or anything else.
 
-    code_score = sum(
-        1 for kw in [
-            "python", "script", "code", "calculate", "formula", "lmtd",
-            "algorithm", "function", "compute", "engineering calculation",
-        ]
-        if kw in lower
-    )
-    doc_score = sum(
-        1 for kw in [
-            "report", "approval note", "draft", "sop", "inspection report",
-            "docx", "word", "presentation", "slides", "pptx",
-        ]
-        if kw in lower
-    )
+Recent conversation context:
+{recent_context}
 
-    if code_score >= doc_score and code_score > 0:
-        task = "code_execution"
-    elif doc_score > 0:
-        task = "document_drafting"
-    else:
-        task = "document_drafting" if has_pdf else "code_execution"
+Last generated code:
+{last_code}
 
-    return {"task_type": task, "phases_completed": ["classify"]}
+Respond with ONLY the category name."""
+    
+    router_payload = {
+        "model": MODELS["reasoning"]["tag"],
+        "messages": [{"role": "user", "content": router_prompt}],
+        "stream": False,
+        "options": {"temperature": 0.1}
+    }
+    
+    import httpx
+    try:
+        async with httpx.AsyncClient(base_url=OLLAMA_BASE_URL, timeout=60) as client:
+            r = await client.post("/api/chat", json=router_payload)
+            resp = r.json().get("message", {}).get("content", "").strip().lower()
+    except Exception:
+        resp = "document_drafting"
+        
+    task_type = "document_drafting"
+    if "code_execution" in resp:
+        task_type = "code_execution"
+    elif "vision_analysis" in resp or bool(state.get("images")):
+        task_type = "vision_analysis"
+
+    return {
+        "task_type": task_type, 
+        "phases_completed": ["classify"],
+        "conversation_summary": summary,
+        "messages": msgs_to_remove
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -163,10 +212,12 @@ async def code_execution_node(state: WorkbenchState) -> WorkbenchState:
     Stores generated code, sandbox stdout/stderr back into state.
     """
     coder_tag = MODELS["code"]["tag"]
+    summary = state.get("conversation_summary", "")
+    summary_text = f"CONVERSATION SUMMARY: {summary}\n\n" if summary else ""
 
     if state["error_count"] > 0 and state["sandbox_stderr"]:
         sys_msg = SystemMessage(
-            content="You are a Python engineering assistant. The previous code had an error. "
+            content=f"{summary_text}You are a Python engineering assistant. The previous code had an error. "
             f"ERROR TRACE:\n{state['sandbox_stderr']}\n\n"
             f"PREVIOUS CODE:\n```python\n{state['code']}\n```\n\n"
             "Fix the code so it runs without errors. "
@@ -174,7 +225,7 @@ async def code_execution_node(state: WorkbenchState) -> WorkbenchState:
         )
     else:
         sys_msg = SystemMessage(
-            content="You are a Python engineering assistant. "
+            content=f"{summary_text}You are a Python engineering assistant. "
             "Return one complete, runnable Python solution in a fenced ```python block. "
             "This code runs non-interactively in a headless sandbox. "
             "NEVER call input(). Use fixed sample values for any user inputs."
@@ -200,6 +251,7 @@ async def code_execution_node(state: WorkbenchState) -> WorkbenchState:
     return {
         "final_response": raw,
         "code": code,
+        "last_code": code,
         "sandbox_output": result["stdout"],
         "sandbox_stderr": result["stderr"],
         "phases_completed": [phase_marker]
@@ -213,9 +265,11 @@ async def code_execution_node(state: WorkbenchState) -> WorkbenchState:
 async def vision_analysis_node(state: WorkbenchState) -> WorkbenchState:
     """Send image(s) directly to the local vision model (LLaVA-Phi3)."""
     vision_tag = MODELS["vision"]["tag"]
+    summary = state.get("conversation_summary", "")
+    summary_text = f"CONVERSATION SUMMARY: {summary}\n\n" if summary else ""
     
     sys_msg = SystemMessage(
-        content="Analyze the image carefully. Describe all visible components, labels, "
+        content=f"{summary_text}Analyze the image carefully. Describe all visible components, labels, "
         "text, symbols, and spatial relationships."
     )
     
@@ -244,6 +298,8 @@ async def document_drafting_node(state: WorkbenchState) -> WorkbenchState:
     extracted_text = state["extracted_text"]
     rag_context = state["rag_context"]
     rag_chunks = state["rag_chunks"]
+    summary = state.get("conversation_summary", "")
+    summary_text = f"CONVERSATION SUMMARY: {summary}\n\n" if summary else ""
     new_phases = []
 
     # PDF extraction
@@ -274,7 +330,7 @@ async def document_drafting_node(state: WorkbenchState) -> WorkbenchState:
 
     if evidence:
         sys_msg = SystemMessage(
-            content="You are LocalHost.AI preparing an internal industrial document. "
+            content=f"{summary_text}You are LocalHost.AI preparing an internal industrial document. "
             "Use ONLY the EVIDENCE below. Do not invent measurements or dates. "
             "Include source markers for every factual statement.\n\n"
             f"EVIDENCE:\n{evidence}\n\n"
@@ -282,7 +338,7 @@ async def document_drafting_node(state: WorkbenchState) -> WorkbenchState:
         )
     else:
         sys_msg = SystemMessage(
-            content="You are LocalHost.AI, a helpful air-gapped industrial assistant. "
+            content=f"{summary_text}You are LocalHost.AI, a helpful air-gapped industrial assistant. "
             "Respond clearly and professionally."
         )
 
