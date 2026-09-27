@@ -87,7 +87,9 @@ async def graph_agent_stream(req: GraphAgentRequest, request: Request):
         })
 
         # ── Build initial state ─────────────────────────────────────────────
+        from langchain_core.messages import HumanMessage
         initial_state = {
+            "messages": [HumanMessage(content=req.message)],
             "user_prompt": req.message,
             "task_type": "",
             "images": req.images,
@@ -112,7 +114,8 @@ async def graph_agent_stream(req: GraphAgentRequest, request: Request):
 
         # Run the graph (async invoke)
         try:
-            final_state: dict = await workbench_graph.ainvoke(initial_state)
+            config = {"configurable": {"thread_id": req.session_id or "default"}}
+            final_state: dict = await workbench_graph.ainvoke(initial_state, config=config)
         except Exception as e:
             yield _sse({"type": "error", "message": f"Graph execution failed: {e}"})
             return
