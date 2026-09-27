@@ -100,6 +100,7 @@ export default function ChatPanel({ session, onActiveModelChange, onRename }) {
   const [generating, setGenerating] = useState(false)
   const [docType, setDocType] = useState('report')
   const [attachedFile, setAttachedFile] = useState(null)
+  const [agentPhase, setAgentPhase] = useState(null)
   const bottomRef = useRef(null)
   const messagesScrollRef = useRef(null)
   const shouldAutoScrollRef = useRef(true)
@@ -230,15 +231,31 @@ export default function ChatPanel({ session, onActiveModelChange, onRename }) {
           try {
             const data = JSON.parse(line.slice(6))
 
-            if (data.type === 'meta' || data.type === 'phase') {
+            if (data.type === 'meta') {
               if (data.model_display) {
                 onActiveModelChange?.(data.model_display)
                 setMessages(prev => prev.map(m => m.id === aiId ? { ...m, model: data.model_display } : m))
               }
-              if (data.type === 'phase') {
-                setMessages(prev => prev.map(m => m.id === aiId ? { ...m, phases: [...m.phases, data.phase] } : m))
+            } else if (data.type === 'phase') {
+              // Phase events → update spinner label only, never append to chat
+              const label = data.title || data.label || data.phase || ''
+              setAgentPhase(label)
+              if (data.model_display) {
+                onActiveModelChange?.(data.model_display)
+                setMessages(prev => prev.map(m => m.id === aiId ? {
+                  ...m,
+                  model: data.model_display,
+                  phases: [...m.phases, data.phase]
+                } : m))
+              } else {
+                setMessages(prev => prev.map(m => m.id === aiId ? {
+                  ...m,
+                  phases: [...m.phases, data.phase]
+                } : m))
               }
             } else if (data.type === 'token') {
+              // First token clears the spinner
+              setAgentPhase(null)
               setMessages(prev => prev.map(m => m.id === aiId ? { ...m, content: m.content + data.text } : m))
             } else if (data.type === 'artifact') {
               setMessages(prev => prev.map(m => m.id === aiId ? { ...m, artifacts: [...m.artifacts, data] } : m))
@@ -272,6 +289,7 @@ export default function ChatPanel({ session, onActiveModelChange, onRename }) {
     } finally {
       window.clearTimeout(idleTimer)
       if (abortControllerRef.current === controller) abortControllerRef.current = null
+      setAgentPhase(null)
       setGenerating(false)
     }
   }
@@ -401,7 +419,24 @@ export default function ChatPanel({ session, onActiveModelChange, onRename }) {
                     </div>
 
                     <div className="bg-surface-card border border-border rounded-2xl rounded-tl-sm p-5 shadow-sm">
-                      {msg.content ? <MarkdownContent content={msg.content} /> : <span className="text-text-secondary text-[14px] italic">Processing...</span>}
+                      {msg.content ? <MarkdownContent content={msg.content} /> : (
+                        <span className="text-text-secondary text-[14px] italic flex items-center gap-2">
+                          <svg className="animate-spin h-4 w-4 text-blue-500 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                          </svg>
+                          {msg.streaming && agentPhase ? agentPhase : 'Processing...'}
+                        </span>
+                      )}
+                      {msg.streaming && msg.content && agentPhase && (
+                        <div className="mt-3 flex items-center gap-2 text-[12px] text-text-secondary border-t border-border pt-2">
+                          <svg className="animate-spin h-3 w-3 text-blue-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                          </svg>
+                          {agentPhase}
+                        </div>
+                      )}
                       {msg.streaming && <span className="cursor-blink" />}
                     </div>
 

@@ -125,8 +125,7 @@ async def graph_agent_stream(req: GraphAgentRequest, request: Request):
         }
 
         # ── Stream: phase notifications while graph runs ────────────────────
-        yield _sse_phase("classify", "Classifying task intent", "reasoning")
-        yield _sse_token("*[Graph Node: Router — classifying intent]*\n")
+        yield _sse_phase("classify", "Classifying task intent...", "reasoning")
 
         # Run the graph (async invoke)
         try:
@@ -143,29 +142,24 @@ async def graph_agent_stream(req: GraphAgentRequest, request: Request):
             if phase == "classify":
                 pass  # already emitted above
             elif phase == "extract_pdf":
-                yield _sse_phase("extract", "PDF text extraction complete", "ocr")
-                yield _sse_token(f"\n> Extracted {len(final_state['extracted_text'])} chars from PDF\n")
+                yield _sse_phase("extract", "Extracting text from PDF...", "ocr")
             elif phase == "retrieve":
                 chunks = final_state.get("rag_chunks", [])
-                yield _sse_phase("retrieve", f"Retrieved {len(chunks)} knowledge chunks", "embed")
-                for i, c in enumerate(chunks, 1):
-                    page = f", page {c['page']}" if c.get("page") else ""
-                    yield _sse_token(f"> {i}. `{c['source']}{page}` (dist: {c['distance']})\n")
+                yield _sse_phase("retrieve", f"Retrieved {len(chunks)} knowledge chunks...", "embed")
             elif phase == "code_execution":
-                yield _sse_phase("execute", "Sandbox execution succeeded", "code")
+                yield _sse_phase("execute", "Running code in Sandbox...", "code")
                 if final_state.get("sandbox_output"):
                     yield _sse_token(f"\n```\n{final_state['sandbox_output']}\n```\n")
             elif phase.startswith("execute-error"):
                 attempt = phase.split("-")[-1]
-                yield _sse_phase("execute", f"Sandbox error — self-correcting (attempt {attempt})", "code")
-                yield _sse_token(f"\n> ⚠ Error detected — asking Qwen Coder to self-correct...\n")
+                yield _sse_phase("execute", f"Sandbox error — self-correcting (attempt {attempt})...", "code")
             elif phase == "vision_analysis":
-                yield _sse_phase("reason", "Vision analysis complete", "vision")
+                yield _sse_phase("reason", "Analyzing vision context...", "vision")
             elif phase == "document_drafting":
-                yield _sse_phase("reason", "Document drafted with Phi-3.5 Mini", "reasoning")
+                yield _sse_phase("reason", "Drafting document with Phi-3.5 Mini...", "reasoning")
             elif phase.startswith("artifact:"):
                 art_type = phase.split(":")[1].upper()
-                yield _sse_phase("artifact", f"Generating {art_type} document", "reasoning")
+                yield _sse_phase("artifact", f"Generating {art_type} document...", "reasoning")
 
         # ── Stream the final response text ──────────────────────────────────
         yield _sse_phase("reason", "Final response ready", "reasoning")

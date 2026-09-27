@@ -77,7 +77,7 @@ def _trim_context(messages: list[BaseMessage]) -> list[BaseMessage]:
     )
 
 async def _ollama_chat(messages: list[BaseMessage], model_tag: str, temperature: float = 0.4, images: Optional[List[str]] = None) -> str:
-    """Non-streaming Ollama chat call used inside graph nodes."""
+    """Non-streaming Ollama chat call with retry logic and OOM-safe limits."""
     import httpx
     record_call("ollama_local", f"graph chat: {messages[-1].content[:60]}")
     
@@ -86,7 +86,6 @@ async def _ollama_chat(messages: list[BaseMessage], model_tag: str, temperature:
     
     for idx, m in enumerate(messages):
         msg = {"role": mapping.get(m.type, "user"), "content": m.content}
-        # Inject images into the last user message if provided
         if images and idx == len(messages) - 1 and msg["role"] == "user":
             msg["images"] = images
         ollama_msgs.append(msg)
@@ -95,11 +94,27 @@ async def _ollama_chat(messages: list[BaseMessage], model_tag: str, temperature:
         "model": model_tag,
         "messages": ollama_msgs,
         "stream": False,
-        "options": {"num_ctx": 4096, "temperature": temperature, "num_predict": 2048},
+        "options": {
+            "temperature": temperature,
+            "num_predict": 1024,   # hard limit — prevents OOM on long chains
+            "num_ctx":     2048,   # trim context window — avoids memory overload
+        },
     }
-    async with httpx.AsyncClient(base_url=OLLAMA_BASE_URL, timeout=180) as client:
-        r = await client.post("/api/chat", json=payload)
-        return r.json().get("message", {}).get("content", "")
+
+    timeout = httpx.Timeout(connect=10.0, read=120.0, write=30.0, pool=5.0)
+    for attempt in range(2):
+        try:
+            async with httpx.AsyncClient(base_url=OLLAMA_BASE_URL, timeout=timeout) as client:
+                r = await client.post("/api/chat", json=payload)
+                r.raise_for_status()
+                return r.json().get("message", {}).get("content", "")
+        except httpx.ReadTimeout:
+            if attempt == 0:
+                continue   # one free retry
+            return "[Response timed out. Try a simpler query or break the task into smaller steps.]"
+        except Exception as exc:
+            return f"[Model error: {exc}]"
+    return "[Model unavailable]"
 
 
 def _extract_code_blocks(text: str) -> list[str]:
@@ -241,11 +256,57 @@ async def code_execution_node(state: WorkbenchState) -> WorkbenchState:
     blocks = _extract_code_blocks(raw)
     code = blocks[0] if blocks else raw
 
-    # Execute in local subprocess sandbox
+    # ── Language detection — skip sandbox for non-Python code ──────────────
+    is_c_or_cpp = "#include" in code or "int main(" in code or "printf(" in code
+    is_java     = "public class" in code or "System.out.println" in code
+    is_js       = ("console.log(" in code or "function " in code) and "def " not in code
+    is_python   = (
+        "def " in code or "import " in code or "print(" in code or
+        "__name__" in code or "class " in code
+    )
+
+    if is_c_or_cpp:
+        return {
+            "final_response": raw,
+            "code": code,
+            "last_code": code,
+            "sandbox_output": "C/C++ code generated. Compile locally with:\n  gcc script.c -o output && ./output",
+            "sandbox_stderr": "",
+            "phases_completed": ["code_execution"],
+        }
+    if is_java:
+        return {
+            "final_response": raw,
+            "code": code,
+            "last_code": code,
+            "sandbox_output": "Java code generated. Compile with:\n  javac Main.java && java Main",
+            "sandbox_stderr": "",
+            "phases_completed": ["code_execution"],
+        }
+    if is_js and not is_python:
+        return {
+            "final_response": raw,
+            "code": code,
+            "last_code": code,
+            "sandbox_output": "JavaScript code generated. Run with:\n  node script.js",
+            "sandbox_stderr": "",
+            "phases_completed": ["code_execution"],
+        }
+    if not is_python:
+        return {
+            "final_response": raw,
+            "code": code,
+            "last_code": code,
+            "sandbox_output": "Code generated. Manual execution required for this language.",
+            "sandbox_stderr": "",
+            "phases_completed": ["code_execution"],
+        }
+
+    # ── Python-only: execute in local subprocess sandbox ───────────────────
     from routers.sandbox import run_code_sandboxed
     result = await run_code_sandboxed(code, timeout=30)
 
-    phase_marker = "execute" if result["status"] == "success" else f"execute-error-{state['error_count']}"
+    phase_marker = "code_execution" if result["status"] == "success" else f"execute-error-{state['error_count']}"
     
     return {
         "final_response": raw,
