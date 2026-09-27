@@ -163,80 +163,78 @@ async def router_node(state: WorkbenchState) -> WorkbenchState:
     summary = state.get("conversation_summary", "")
     msgs_to_remove = []
 
-    # 1. Summarize if history is too long (Part 5)
+    # 1. Summarize if history is very long (> 20 messages)
     if len(messages) > 20:
         to_summarize = messages[:-6]
-        prompt = "Summarize the following conversation history concisely:\n"
+        prompt = "Summarize the following conversation history in 3-4 sentences:\n"
         for m in to_summarize:
-            prompt += f"{m.type}: {m.content}\n"
-        if summary:
-            prompt = f"Previous summary: {summary}\n\n" + prompt
-            
-        summary_payload = {
-            "model": MODELS["reasoning"]["tag"],
-            "messages": [{"role": "user", "content": prompt}],
-            "stream": False,
-            "options": {"temperature": 0.2}
-        }
-        import httpx
+            prompt += f"{m.type}: {m.content[:200]}\n"
         try:
-            async with httpx.AsyncClient(base_url=OLLAMA_BASE_URL, timeout=60) as client:
-                r = await client.post("/api/chat", json=summary_payload)
-                summary = r.json().get("message", {}).get("content", summary)
-        except Exception as e:
+            from langchain_core.messages import SystemMessage as SM, HumanMessage as HM
+            summary_raw = await _ollama_chat(
+                [SM(content="You are a concise summarizer."), HM(content=prompt)],
+                MODELS["reasoning"]["tag"], temperature=0.2
+            )
+            summary = summary_raw or summary
+        except Exception:
             pass
-            
-        from langchain_core.messages import RemoveMessage
-        msgs_to_remove = [RemoveMessage(id=m.id) for m in to_summarize if m.id]
+        try:
+            from langchain_core.messages import RemoveMessage
+            msgs_to_remove = [RemoveMessage(id=m.id) for m in to_summarize if m.id]
+        except Exception:
+            pass
 
-    # Vision check short-circuit
-    has_image = bool(state.get("images"))
-    if has_image:
-        return {"task_type": "vision_analysis", "phases_completed": ["classify"], "conversation_summary": summary, "messages": msgs_to_remove}
+    # 2. Vision short-circuit
+    if state.get("images"):
+        return {"task_type": "vision_analysis", "phases_completed": ["classify"],
+                "conversation_summary": summary, "messages": msgs_to_remove}
 
-    # 2. LLM Routing using recent context (Part 2)
-    recent_context = ""
-    for m in messages[-6:]:
-        recent_context += f"{m.type}: {m.content}\n"
-        
-    last_code = state.get("last_code", "")
-    
-    router_prompt = f"""You are a routing assistant. Classify the user's latest request into exactly one category:
-- "code_execution": Writing, modifying, fixing code. Also applies to "same code", "in C", "add error handling".
-- "vision_analysis": Analyzing images or pictures.
-- "document_drafting": General questions, report writing, summaries, or anything else.
+    # 3. Fast keyword router — zero extra LLM call
+    prompt_lower = state["user_prompt"].lower()
+    last_code     = state.get("last_code", "")
 
-Recent conversation context:
-{recent_context}
+    # Context-aware code references (refers to previous code in history)
+    code_context_triggers = [
+        "same code", "convert this", "in c", "in c++", "in java", "in javascript",
+        "in python", "in rust", "add error handling", "fix this", "modify it",
+        "optimize it", "rewrite it", "now add", "add a function", "the above code",
+        "above function", "previous code", "that code", "this code",
+    ]
+    has_last_code = bool(last_code)
 
-Last generated code:
-{last_code}
+    # Explicit code triggers
+    code_triggers = [
+        "python", "script", "code", "calculate", "formula", "lmtd", "function",
+        "algorithm", "compute", "engineering calc", "write a", "implement",
+        "pressure drop", "flow rate", "heat exchanger", "efficiency",
+    ]
 
-Respond with ONLY the category name."""
-    
-    router_payload = {
-        "model": MODELS["reasoning"]["tag"],
-        "messages": [{"role": "user", "content": router_prompt}],
-        "stream": False,
-        "options": {"temperature": 0.1}
-    }
-    
-    import httpx
-    try:
-        async with httpx.AsyncClient(base_url=OLLAMA_BASE_URL, timeout=60) as client:
-            r = await client.post("/api/chat", json=router_payload)
-            resp = r.json().get("message", {}).get("content", "").strip().lower()
-    except Exception:
-        resp = "document_drafting"
-        
-    task_type = "document_drafting"
-    if "code_execution" in resp:
+    # Document / reasoning triggers
+    doc_triggers = [
+        "report", "approval note", "draft", "sop", "inspection report", "docx",
+        "word", "summary", "summarize", "explain", "what is", "define", "describe",
+        "standard", "regulation", "procedure", "guideline",
+    ]
+
+    has_pdf = bool(state.get("pdf_b64"))
+
+    code_score = sum(1 for kw in code_triggers if kw in prompt_lower)
+    doc_score  = sum(1 for kw in doc_triggers  if kw in prompt_lower)
+
+    # Boost code score if user is clearly referring to previous code
+    if has_last_code and any(t in prompt_lower for t in code_context_triggers):
+        code_score += 5
+
+    if code_score > doc_score:
         task_type = "code_execution"
-    elif "vision_analysis" in resp or bool(state.get("images")):
-        task_type = "vision_analysis"
+    elif doc_score > 0 or has_pdf:
+        task_type = "document_drafting"
+    else:
+        # Default: if there's history with code → code; else document
+        task_type = "code_execution" if has_last_code and len(messages) > 1 else "document_drafting"
 
     return {
-        "task_type": task_type, 
+        "task_type": task_type,
         "phases_completed": ["classify"],
         "conversation_summary": summary,
         "messages": msgs_to_remove

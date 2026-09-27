@@ -171,19 +171,19 @@ export default function ChatPanel({ session, onActiveModelChange, onRename }) {
     let idleTimer
     const armIdleTimeout = () => {
       window.clearTimeout(idleTimer)
-      // A healthy SSE request immediately emits metadata/progress. If a Vite
-      // or backend restart leaves an old browser stream hanging, recover the
-      // composer instead of showing "Processing..." forever.
-      idleTimer = window.setTimeout(() => controller.abort(), 45000)
+      // LangGraph pipeline: router LLM → coder LLM → sandbox → response
+      // Each step can take 30-60s on local hardware. Allow 3 minutes total.
+      idleTimer = window.setTimeout(() => controller.abort(), 180000)
     }
 
     armIdleTimeout()
     try {
+      // Build history — exclude streaming/empty messages and cap each entry at 2000 chars
       const chatHistory = messages
-        .filter(m => m.role === 'user' || m.role === 'ai')
+        .filter(m => (m.role === 'user' || m.role === 'ai') && !m.streaming && m.content)
         .map(m => ({
           role: m.role === 'ai' ? 'assistant' : 'user',
-          content: m.content
+          content: String(m.content).slice(0, 2000)
         }))
       chatHistory.push({ role: 'user', content: text })
 

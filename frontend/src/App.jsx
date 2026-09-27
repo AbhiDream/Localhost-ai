@@ -1,8 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Component } from 'react'
 import Sidebar from './components/Sidebar'
 import ChatPanel from './components/ChatPanel'
 import NetworkMonitor from './components/NetworkMonitor'
 import './index.css'
+
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null } }
+  static getDerivedStateFromError(err) { return { error: err } }
+  render() {
+    if (this.state.error) return (
+      <div className="h-screen flex items-center justify-center bg-surface flex-col gap-4 p-8">
+        <span className="text-4xl">⚠️</span>
+        <h2 className="text-text-primary font-semibold text-lg">Something went wrong</h2>
+        <p className="text-text-secondary text-sm max-w-md text-center">{String(this.state.error.message)}</p>
+        <button
+          onClick={() => { this.setState({ error: null }); window.location.reload() }}
+          className="px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium hover:opacity-90"
+        >Reload App</button>
+      </div>
+    )
+    return this.props.children
+  }
+}
 
 const INITIAL_SESSIONS = [
   { id: '#AC-9942', title: 'CDU-2 Inspection Report', timeAgo: '2m ago', model: 'phi3.5', active: true },
@@ -79,6 +98,7 @@ export default function App() {
   }
 
   return (
+    <ErrorBoundary>
     <div className="h-screen flex overflow-hidden bg-surface font-sans">
       {/* Sidebar */}
       <Sidebar
@@ -138,5 +158,6 @@ export default function App() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   )
 }
