@@ -117,10 +117,37 @@ async def _ollama_chat(messages: list[BaseMessage], model_tag: str, temperature:
     return "[Model unavailable]"
 
 
-def _extract_code_blocks(text: str) -> list[str]:
-    """Pull Python fenced blocks from model output."""
-    blocks = re.findall(r"```(?:python)?\s*\n(.*?)```", text, re.DOTALL)
-    return [b.strip() for b in blocks if b.strip()]
+def _extract_code_blocks(text: str) -> list[tuple[str, str]]:
+    """Extract ALL fenced code blocks with their language tag.
+    Returns list of (code_body, language) tuples.
+    Language is lowercase, e.g. 'python', 'c', 'cpp', 'java', 'javascript', ''.
+    """
+    blocks = re.findall(r"```(\w*)\s*\n(.*?)```", text, re.DOTALL)
+    return [(body.strip(), lang.lower()) for lang, body in blocks if body.strip()]
+
+
+def _detect_language(code: str, raw: str) -> str:
+    """Detect code language from explicit fence tag first, then content heuristics."""
+    # 1. Trust the explicit fence tag in the raw response
+    tag_match = re.search(r"```(c\+\+|cpp|c|javascript|js|java|python)\b", raw, re.IGNORECASE)
+    if tag_match:
+        tag = tag_match.group(1).lower()
+        if tag in ("c++", "cpp"):       return "cpp"
+        if tag == "c":                  return "c"
+        if tag in ("js", "javascript"): return "javascript"
+        if tag == "java":               return "java"
+        if tag == "python":             return "python"
+
+    # 2. Content heuristics as fallback
+    if "#include" in code or "int main(" in code or "printf(" in code:
+        return "c"
+    if "public class" in code or "System.out.println" in code:
+        return "java"
+    if "def " in code or "import " in code or "print(" in code or "__name__" in code:
+        return "python"
+    if "console.log(" in code and "def " not in code:
+        return "javascript"
+    return "unknown"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -253,51 +280,26 @@ async def code_execution_node(state: WorkbenchState) -> WorkbenchState:
 
     raw = await _ollama_chat(chat_msgs, coder_tag, temperature=0.2)
     
-    blocks = _extract_code_blocks(raw)
-    code = blocks[0] if blocks else raw
+    blocks = _extract_code_blocks(raw)              # [(code_body, lang), ...]
+    code, lang = blocks[0] if blocks else (raw, "")
 
-    # ── Language detection — skip sandbox for non-Python code ──────────────
-    is_c_or_cpp = "#include" in code or "int main(" in code or "printf(" in code
-    is_java     = "public class" in code or "System.out.println" in code
-    is_js       = ("console.log(" in code or "function " in code) and "def " not in code
-    is_python   = (
-        "def " in code or "import " in code or "print(" in code or
-        "__name__" in code or "class " in code
-    )
+    # ── Language detection (explicit tag wins over heuristics) ─────────────
+    detected = _detect_language(code, raw)
 
-    if is_c_or_cpp:
+    sandbox_instructions = {
+        "c":          "C code generated. Compile locally with:\n  gcc script.c -o output && ./output",
+        "cpp":        "C++ code generated. Compile locally with:\n  g++ script.cpp -o output && ./output",
+        "java":       "Java code generated. Compile with:\n  javac Main.java && java Main",
+        "javascript": "JavaScript code generated. Run with:\n  node script.js",
+        "unknown":    "Code generated. Manual execution required for this language.",
+    }
+
+    if detected in sandbox_instructions:
         return {
             "final_response": raw,
             "code": code,
             "last_code": code,
-            "sandbox_output": "C/C++ code generated. Compile locally with:\n  gcc script.c -o output && ./output",
-            "sandbox_stderr": "",
-            "phases_completed": ["code_execution"],
-        }
-    if is_java:
-        return {
-            "final_response": raw,
-            "code": code,
-            "last_code": code,
-            "sandbox_output": "Java code generated. Compile with:\n  javac Main.java && java Main",
-            "sandbox_stderr": "",
-            "phases_completed": ["code_execution"],
-        }
-    if is_js and not is_python:
-        return {
-            "final_response": raw,
-            "code": code,
-            "last_code": code,
-            "sandbox_output": "JavaScript code generated. Run with:\n  node script.js",
-            "sandbox_stderr": "",
-            "phases_completed": ["code_execution"],
-        }
-    if not is_python:
-        return {
-            "final_response": raw,
-            "code": code,
-            "last_code": code,
-            "sandbox_output": "Code generated. Manual execution required for this language.",
+            "sandbox_output": sandbox_instructions[detected],
             "sandbox_stderr": "",
             "phases_completed": ["code_execution"],
         }

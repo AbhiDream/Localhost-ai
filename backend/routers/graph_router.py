@@ -9,6 +9,7 @@ POST /api/agent/graph/stream
                 → output_node → SSE stream
   All local model calls, sandbox execution, and RAG retrieval are preserved intact.
 """
+import asyncio
 import json
 import time
 from typing import Optional, List, Any
@@ -162,16 +163,22 @@ async def graph_agent_stream(req: GraphAgentRequest, request: Request):
                 yield _sse_phase("artifact", f"Generating {art_type} document...", "reasoning")
 
         # ── Stream the final response text ──────────────────────────────────
-        yield _sse_phase("reason", "Final response ready", "reasoning")
+        yield _sse_phase("reason", "Generating response...", "reasoning")
         yield _sse_token("\n\n")
 
         final_text = final_state.get("final_response", "")
-        # Stream in 80-char chunks so the UI renders progressively
-        chunk_size = 80
-        for i in range(0, len(final_text), chunk_size):
+        # Stream word-by-word with small delay so the browser renders progressively
+        words = final_text.split(" ")
+        buf = ""
+        for i, word in enumerate(words):
             if await request.is_disconnected():
                 return
-            yield _sse_token(final_text[i:i + chunk_size])
+            buf += word + " "
+            # Flush every ~6 words for smooth feel
+            if (i + 1) % 6 == 0 or i == len(words) - 1:
+                yield _sse_token(buf)
+                buf = ""
+                await asyncio.sleep(0.02)
 
         # ── Artifact notification ───────────────────────────────────────────
         if final_state.get("artifact"):
