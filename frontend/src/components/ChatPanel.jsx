@@ -178,14 +178,27 @@ export default function ChatPanel({ session, onActiveModelChange, onRename }) {
 
     armIdleTimeout()
     try {
-      const body = { message: text }
+      const chatHistory = messages
+        .filter(m => m.role === 'user' || m.role === 'ai')
+        .map(m => ({
+          role: m.role === 'ai' ? 'assistant' : 'user',
+          content: m.content
+        }))
+      chatHistory.push({ role: 'user', content: text })
+
+      const body = { 
+        message: text,
+        history: chatHistory 
+      }
+      
       if (currentAttachment?.type?.startsWith('image/')) {
         body.images = [currentAttachment.data.split(',')[1]]
       } else if (currentAttachment?.type === 'application/pdf') {
         body.pdf = currentAttachment.data.split(',')[1]
       }
 
-      const resp = await fetch('/api/agent/stream', {
+      // Hit the new LangGraph endpoint which supports history processing
+      const resp = await fetch('/api/agent/graph/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

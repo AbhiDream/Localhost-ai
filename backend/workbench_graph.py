@@ -18,7 +18,6 @@ from typing import Any, AsyncGenerator, List, Optional, TypedDict, Annotated
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage, AIMessage, trim_messages
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
-from langgraph.checkpoint.memory import MemorySaver
 
 from config import MODELS, OLLAMA_BASE_URL
 from routers.network_monitor import record_call
@@ -482,9 +481,8 @@ def build_workbench_graph():
     # output → END
     g.add_edge("output_node", END)
 
-    # Memory Checkpointer
-    memory = MemorySaver()
-    return g.compile(checkpointer=memory)
+    # Return graph without checkpointer (history managed by frontend)
+    return g.compile()
 
 
 # Singleton compiled graph — imported by the FastAPI router

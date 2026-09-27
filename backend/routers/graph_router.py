@@ -27,6 +27,7 @@ router = APIRouter()
 
 class GraphAgentRequest(BaseModel):
     message: str
+    history: Optional[List[dict]] = []
     model_override: Optional[str] = None
     session_id: Optional[str] = None
     context: Optional[List[Any]] = []
@@ -87,9 +88,24 @@ async def graph_agent_stream(req: GraphAgentRequest, request: Request):
         })
 
         # ── Build initial state ─────────────────────────────────────────────
-        from langchain_core.messages import HumanMessage
+        from langchain_core.messages import HumanMessage, AIMessage
+        
+        # Build Langchain message history from frontend payload
+        langchain_msgs = []
+        for msg in (req.history or []):
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            if role == "user":
+                langchain_msgs.append(HumanMessage(content=content))
+            else:
+                langchain_msgs.append(AIMessage(content=content))
+        
+        # Ensure the current message is appended if not already the last in history
+        if not langchain_msgs or langchain_msgs[-1].content != req.message:
+            langchain_msgs.append(HumanMessage(content=req.message))
+
         initial_state = {
-            "messages": [HumanMessage(content=req.message)],
+            "messages": langchain_msgs,
             "user_prompt": req.message,
             "task_type": "",
             "images": req.images,
@@ -114,8 +130,7 @@ async def graph_agent_stream(req: GraphAgentRequest, request: Request):
 
         # Run the graph (async invoke)
         try:
-            config = {"configurable": {"thread_id": req.session_id or "default"}}
-            final_state: dict = await workbench_graph.ainvoke(initial_state, config=config)
+            final_state: dict = await workbench_graph.ainvoke(initial_state)
         except Exception as e:
             yield _sse({"type": "error", "message": f"Graph execution failed: {e}"})
             return
