@@ -428,16 +428,9 @@ async def output_node(state: WorkbenchState) -> WorkbenchState:
     """
     final_resp = state["final_response"]
     
-    # Append sandbox results for code tasks
-    if state["task_type"] == "code_execution" and state["sandbox_output"]:
-        final_resp += (
-            f"\n\n---\n**Sandbox Output:**\n```\n{state['sandbox_output']}\n```"
-        )
-    if state["task_type"] == "code_execution" and state["sandbox_stderr"] and state["error_count"] >= MAX_RETRIES:
-        final_resp += (
-            f"\n\n> ⚠ Self-correction exhausted after {MAX_RETRIES} retries.\n"
-            f"```\n{state['sandbox_stderr'][:500]}\n```"
-        )
+    # We no longer append sandbox_output or sandbox_stderr to final_resp here.
+    # It pollutes the Python artifact generation and causes duplicate messages in UI.
+    # The frontend router (graph_router.py) handles rendering the sandbox execution flow.
 
     new_phases = ["output"]
     artifact = None

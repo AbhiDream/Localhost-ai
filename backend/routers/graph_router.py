@@ -149,8 +149,6 @@ async def graph_agent_stream(req: GraphAgentRequest, request: Request):
                 yield _sse_phase("retrieve", f"Retrieved {len(chunks)} knowledge chunks...", "embed")
             elif phase == "code_execution":
                 yield _sse_phase("execute", "Running code in Sandbox...", "code")
-                if final_state.get("sandbox_output"):
-                    yield _sse_token(f"\n```\n{final_state['sandbox_output']}\n```\n")
             elif phase.startswith("execute-error"):
                 attempt = phase.split("-")[-1]
                 yield _sse_phase("execute", f"Sandbox error — self-correcting (attempt {attempt})...", "code")
@@ -191,16 +189,17 @@ async def graph_agent_stream(req: GraphAgentRequest, request: Request):
                 "doc_type": art["doc_type"],
             })
 
-        # ── Self-correction exhausted notice ───────────────────────────────
-        if (
-            final_state.get("task_type") == "code_execution"
-            and final_state.get("sandbox_stderr")
-            and final_state.get("error_count", 0) >= MAX_RETRIES
-        ):
-            yield _sse_token(
-                f"\n\n> ⚠ Self-correction limit reached after {MAX_RETRIES} attempts. "
-                "Review the error trace above.\n"
-            )
+        # ── Sandbox output / errors ──────────────────────────────────────────
+        if final_state.get("task_type") == "code_execution":
+            if final_state.get("sandbox_stderr") and final_state.get("error_count", 0) >= MAX_RETRIES:
+                yield _sse_token(
+                    f"\n\n> ⚠ Self-correction limit reached after {MAX_RETRIES} attempts.\n\n"
+                    f"**Sandbox Error Trace:**\n```python\n{final_state['sandbox_stderr'][:1000]}\n```\n"
+                )
+            elif final_state.get("sandbox_output"):
+                yield _sse_token(
+                    f"\n\n**Sandbox Output:**\n```\n{final_state['sandbox_output']}\n```\n"
+                )
 
         # ── DONE ────────────────────────────────────────────────────────────
         latency = round((time.time() - t0) * 1000)
