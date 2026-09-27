@@ -13,3 +13,4 @@ Pillow==10.4.0
 numpy>=2.0,<3
 pdfplumber==0.11.4
 sentence-transformers==3.0.1
+langgraph>=0.2.0

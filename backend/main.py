@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from config import OLLAMA_BASE_URL
-from routers import agent, chat, documents, ocr, rag, sandbox, network_monitor
+from routers import agent, chat, documents, ocr, rag, sandbox, network_monitor, graph_router
 
 
 @asynccontextmanager
@@ -48,13 +48,14 @@ app.add_middleware(
 )
 
 # Mount routers
-app.include_router(agent.router,          prefix="/api/agent",     tags=["Agent"])
-app.include_router(chat.router,           prefix="/api/chat",      tags=["Chat"])
-app.include_router(documents.router,      prefix="/api/documents", tags=["Documents"])
-app.include_router(ocr.router,            prefix="/api/ocr",       tags=["OCR"])
-app.include_router(rag.router,            prefix="/api/rag",       tags=["RAG"])
-app.include_router(sandbox.router,        prefix="/api/sandbox",   tags=["Sandbox"])
-app.include_router(network_monitor.router, prefix="/api/network",  tags=["Network"])
+app.include_router(agent.router,          prefix="/api/agent",       tags=["Agent"])
+app.include_router(graph_router.router,   prefix="/api/agent/graph", tags=["Agent-Graph"])
+app.include_router(chat.router,           prefix="/api/chat",        tags=["Chat"])
+app.include_router(documents.router,      prefix="/api/documents",   tags=["Documents"])
+app.include_router(ocr.router,            prefix="/api/ocr",         tags=["OCR"])
+app.include_router(rag.router,            prefix="/api/rag",         tags=["RAG"])
+app.include_router(sandbox.router,        prefix="/api/sandbox",     tags=["Sandbox"])
+app.include_router(network_monitor.router, prefix="/api/network",    tags=["Network"])
 
 # Ensure directories exist
 Path("outputs").mkdir(exist_ok=True)

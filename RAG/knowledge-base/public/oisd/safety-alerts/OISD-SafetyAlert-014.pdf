@@ -1,0 +1,1112 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Resource Not Found - Oil Industry Safety Directorate (OISD)</title>
+    
+    <meta name="keywords" content="Oil Industry Safety Directorate (OISD)" />
+    <meta name="description" content="Oil Industry Safety Directorate (OISD)" />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="https://oisd.gov.in/ContentHome/images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="https://oisd.gov.in/ContentHome/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <script src="https://oisd.gov.in/Scripts/jquery-4.0.0.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://oisd.gov.in/ContentHome/style.css" />
+    <link type="text/css" rel="stylesheet" href="https://oisd.gov.in/ContentHome/bootstrap.css" />
+    <link type="text/css" rel="stylesheet" href="https://oisd.gov.in/ContentHome/flaticon.css" />
+    <link type="text/css" rel="stylesheet" href="https://oisd.gov.in/ContentHome/animate.css" />
+    <link type="text/css" rel="stylesheet" href="https://oisd.gov.in/ContentHome/jquery.fancybox.css" />
+    <link type="text/css" rel="stylesheet" href="https://oisd.gov.in/ContentHome/jquery.datetimepicker.css" />
+    
+    <link type="text/css" rel="stylesheet" href="https://oisd.gov.in/ContentHome/responsive.css" />
+
+    
+    <link rel='stylesheet' id='factoryhub-color-switcher-css' href='https://oisd.gov.in/Content/switcher/default.css' />
+    <!-- Responsive -->
+    <style>
+
+        body#text {
+            font-size: 16px;
+        }
+
+            body#text p,
+            body#text div,
+            body#text span,
+            body#text td,
+            body#text th,
+            body#text li,
+            body#text a {
+                font-size: inherit !important;
+            }
+
+           </style>
+</head>
+<body class="home   header-sticky header-v5 hide-topbar-mobile" id="text">
+
+<div id="divMessageTopContainerMainLayout" class="messagealertMainLayoutContainer">
+    <div id="alert_containerMainLayout" class="messagealertMainLayout">
+    </div>
+</div>
+
+<!--Start modal placeholder(pop up)-->
+<div class="modal fade in" id='myModalOISD'>
+    <div class="holder">
+        <div id="divpopup" class="popup popupcontentTop">
+            <div class="modal-header modal-header-new">
+                <input type="button" class="btn btn-sm modal-input-btn" data-dismiss="modal" aria-hidden="true" value="x"/>
+                <h4 class="modal-title" id="myModalHeaderOISD"></h4>
+            </div>
+            <div id='myModalContentOISD' class="popupui-body"></div>
+            <div class="modal-header Model-header-Popup"></div>
+
+        </div>
+    </div>
+</div>
+<!--End modal placeholder-->
+<!-- Modal confirm -->
+<div class="modal Model-StyleClass" id="confirmModal">
+    <div class="popup popupcontentTop">
+        <div class="modal-content">
+            <div class="modal-header" id="confirmMessage">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm" id="confirmOk">Ok</button>
+                <button type="button" class="btn btn-sm" id="confirmCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal confirm -->
+<script type="text/javascript">
+        function ShowMessage(message, messagetype) {
+            var cssclass;
+            switch (messagetype) {
+                case 'Success':
+                    cssclass = 'alert-success'
+                    break;
+                case 'Error':
+                    cssclass = 'alert-danger'
+                    break;
+                case 'Warning':
+                    cssclass = 'alert-warning'
+                    break;
+                default:
+                    cssclass = 'alert-info'
+            }
+            $('#alert_containerMainLayout').append('<div id="alert_div_topMessageLayout" style="margin: 0 0.5%; -webkit-box-shadow: 3px 4px 6px #999;" class="alert fade in ' + cssclass + '"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>' + messagetype + '!  </strong> <span>' + message + '</span></div>');
+
+            setTimeout(function () {
+                $("#alert_div_topMessageLayout").fadeTo(2000, 500).slideUp(500, function () {
+                    $("#alert_div_topMessageLayout").remove();
+                });
+            }, 5000);
+        }
+        var options = { "backdrop": "static", keyboard: true };
+        function ShowPopUpOISD(modaltitle, height, width, data) {
+            $("#divpopup").width(width).height(height);
+            $('#myModalHeaderOISD').html(modaltitle);
+            $('#myModalContentOISD').html(data);
+            $('#myModalOISD').modal(options);
+            $('#myModalOISD').modal('show');
+        }
+
+        // Delete popup function
+        function confirmDialog(message, onConfirm) {
+            var modal = $("#confirmModal");
+            var closeModal = function () {
+                modal.modal("hide");
+            };
+
+            modal.modal(options);
+            modal.modal("show");
+            $("#confirmMessage").empty().append(message);
+
+            // call funtion for delete data after clicking OK in alert popup
+            $("#confirmOk").unbind('click').bind('click', onConfirm)
+            $("#confirmOk").one('click', closeModal);
+
+            // close popup after clicking cancel in alert popup
+            $("#confirmCancel").one("click", closeModal);
+        }
+</script>
+
+    <input type="hidden" value="https://oisd.gov.in" name="WebSiteURL" id="WebSiteURL" />
+    <div id="page" class="hfeed site">
+        <div class="preloader"></div>
+        <!-- masthead -->
+        <div id="mf-header-minimized" class="mf-header-minimized mf-header-v5"></div>
+        <header id="masthead" class="site-header clearfix">
+            <div class="header-main clearfix">
+                
+<style>
+    .common-right > ul {
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+    }
+
+        .common-right > ul > li {
+            display: inline-flex !important;
+            float: none !important;
+            width: auto !important;
+            flex-shrink: 0 !important;
+        }
+
+    .header-search {
+        position: relative;
+        max-width: 400px;
+        margin: 15px 0 15px auto;
+    }
+
+        .header-search .form-control {
+            height: 40px;
+            padding-right: 45px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .header-search button {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 45px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: #333;
+        }
+
+            .header-search button:hover {
+                color: #007bff;
+            }
+
+    .search-results {
+        position: absolute;
+        top: 42px;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #ddd;
+        z-index: 99999;
+        display: none;
+        max-height: 300px;
+        overflow-y: auto;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+
+        .search-results a {
+            display: block;
+            padding: 10px 12px;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 1px solid #eee;
+        }
+
+            .search-results a:hover {
+                background: #f5f5f5;
+                color: #007bff;
+            }
+
+    .search-no-result {
+        padding: 10px 12px;
+        color: #777;
+    }
+    .search-result-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .search-result-content {
+        font-size: 13px;
+        color: #777;
+        line-height: 1.4;
+    }
+</style>
+<div class="top_info_header">
+    <div class="container">
+        <div class="row align-center">
+            <div class="col-md-3">
+                <div class="top_left_header">
+                    <ul>
+                        <li class="hindi_heading"><a href="#">भारत सरकार</a></li>
+                        <li class="ministry"><a href="#">Government of india</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="header-search"><input type="text" id="siteSearch" class="form-control" placeholder="Search..." autocomplete="off" /><button type="button" id="searchBtn"><i class="fa fa-search"></i></button><div id="searchResults" class="search-results"></div></div>
+            </div>
+
+
+                <div class="col-md-6">
+                    <div class="common-right">
+                        <ul>
+                            <li class=""><a href="#">Skip to main content</a></li>
+                            <li class="dropdown ico-accessibility">
+                                <a href="#"><img src="https://oisd.gov.in/Content/images/icons/ico-accessibility.png" alt="Oil-Industry-Safety-Directorate-OISD" class="logo"></a>
+                                <ul class="dropdown-menu">
+                                    <li class="">
+                                        <a onclick="set_font_size('increase')" title="Increase font size" href="javascript:void(0);">
+                                            A<sup>+</sup>
+                                        </a>
+                                    </li>
+                                    <li> <a onclick="set_font_size()" title="Reset font size" href="javascript:void(0);">A<sup>&nbsp;</sup></a> </li>
+                                    <li> <a onclick="set_font_size('decrease')" title="Decrease font size" href="javascript:void(0);">A<sup>-</sup></a> </li>
+
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="https://x.com/oisdindia" target="_blank" title="Social Medias">
+                                    
+                                    <img class="top" alt="Twitter" src="https://oisd.gov.in/Content/images/icons/ico-twitter.png">
+                                </a>
+                                
+                            </li>
+                            <li>
+                                <a href="/Home/SiteMap" title="Sitemap">
+                                    <img class="top" src="https://oisd.gov.in/Content/images/icons/ico-sitemap.png" alt="Sitemap">
+                                </a>
+                            </li>
+                            <li class="dropdown">
+                                <a href="javascript:void(0);" id="toggleLanguage" title="Language">
+                                    <img class="top" src="https://oisd.gov.in/Content/images/icons/language.png" alt="Language">
+                                </a>
+                                <ul class="dropdown-menu">
+
+                                    <li style="background:#fff;">
+                                        <a href="/Home/ChangeLanguage?language=en-US&amp;url=https%3A%2F%2Foisd.gov.in%2Fresource-not-found" class="login-btn">
+                                            
+                                            English
+                                        </a>
+                                    </li>
+                                    <li style="background:#fff;">
+                                        <a href="/Home/ChangeLanguage?language=hi-IN&amp;url=https%3A%2F%2Foisd.gov.in%2Fresource-not-found" class="login-btn">
+                                            
+                                            हिंदी
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            
+                            <li>
+                                <a target="_blank" title="External Link that opens in a new window" href="https://mail.gov.in">
+                                    <img class="top" src="https://oisd.gov.in/Content/images/icons/email-icon-black-free-png.png" alt="Email">
+                                </a>
+                            </li>
+                                <li class="">
+                                    <a style="font-size:18px;" href="https://oisd.gov.in/CustomerLogin" title="Login">
+                                        <i class="fa fa-sign-in" aria-hidden="true"></i> Login
+                                    </a>
+                                </li>
+
+                        </ul>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+<div class="site-contact">
+    <div class="container">
+        <div class="col-sm-12">
+
+            <div class="site-logo_new row">
+                <div class="col-sm-1 padding-0 mob-nav-2">
+                    <a href="/">
+                        <img src="https://oisd.gov.in/Content/images/OISD.png" alt="Oil-Industry-Safety-Directorate-OISD" class="logo">
+                    </a>
+                </div>
+
+                <div class="col-sm-7 padding-0 mob-nav-10">
+                    <div class="text-logo">
+                        <h1>Oil Industry Safety Directorate</h1>
+                        <span>(Under Ministry of Petroleum and Natural Gas)</span>
+                    </div>
+                    
+                </div>
+                <div class="col-sm-4 Indian-gov">
+                    <div class="govt-logo">
+                        <div class="sw-logo">
+                            <img src="https://oisd.gov.in/Content/Images/swach-bharat.png" alt="Oil-Industry-Safety-Directorate" class="" />
+                        </div>
+                        <div class="lion-ico">
+                            <img src="https://oisd.gov.in/Content/Images/Emblem_of_India.svg" alt="Oil-Industry-Safety-Directorate" class="logo" />
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="site-extra-text hidden-md hidden-sm margin-top-custom-btn col-sm-2 d-none">
+                <div class="widget_text widget widget_custom_html">
+                        <div class="textwidget custom-html-widget">
+                            <div class="header-contact mail">
+
+                                    <div class="dropdown widget mf-button-widget">
+                                        <button class="dropbtn">English</button>
+                                        <div class="dropdown-content">
+                                            <a href="/Home/ChangeLanguage?language=en-US&amp;url=https%3A%2F%2Foisd.gov.in%2Fresource-not-found" class="login-btn">
+                                                English
+                                            </a>
+                                            <a href="/Home/ChangeLanguage?language=hi-IN&amp;url=https%3A%2F%2Foisd.gov.in%2Fresource-not-found" class="login-btn">
+                                                Hindi
+                                            </a>
+
+                                        </div>
+                                    </div>
+
+                                <div class="dropdown widget mf-button-widget">
+                                    <button class="dropbtn"><span class="fa fa-user icon"></span> Log In</button>
+                                    <div class="dropdown-content">
+                                        <a class="login-btn" data-toggle="tooltip" title="Click here to login as OISD Admin" href="/login"><i class="fa fa-user icon"></i> OISD Admin Login</a>
+                                        <a class="login-btn" data-toggle="tooltip" title="Login For OISD Employees" href="https://mail.gov.in" target="_blank"><i class="fa fa-user icon"></i> Employee Login</a>
+                                        <a class="login-btn" data-toggle="tooltip" title="ESA Recomm. Monitoring" href="http://www.connect.oisd.gov.in/OISDPortal" target="_blank"><i class="fa fa-user icon"></i> ESA Recomm. Monitoring</a>
+                                        <a class="login-btn" data-toggle="tooltip" title="Consent To Operate" href="http://www.connect.oisd.gov.in/OISDPortal/loginPage.do?loginFor=lic" target="_blank"><i class="fa fa-user icon"></i> Consent To Operate</a>
+                                        <a class="login-btn" data-toggle="tooltip" title="PCSA" href="http://www.connect.oisd.gov.in/OISDPortal/loginPage.do?loginFor=lic" target="_blank"><i class="fa fa-user icon"></i> PCSA</a>
+                                        <a class="login-btn" data-toggle="tooltip" title="Online Incident Reporting" href="http://www.connect.oisd.gov.in/OISDPortal" target="_blank"><i class="fa fa-user icon"></i> Online Incident Reporting</a>
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+                        </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<div class="container">
+    <div class="navbar-toggle">
+        <span id="mf-navbar-toggle" class="navbar-icon">
+            <span class="navbars-line"></span>
+        </span>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+
+<script>
+   $(document).ready(function () {
+
+    function performSearch() {
+
+        var searchText = $("#siteSearch").val().trim();
+
+        if (searchText.length < 2) {
+            return;
+        }
+
+        window.location.href =
+            '/PageData/SearchResult' +
+            '?search=' + encodeURIComponent(searchText);
+    }
+
+    $("#searchBtn").on("click", function () {
+        performSearch();
+    });
+
+    $("#siteSearch").on("keypress", function (e) {
+
+        if (e.which === 13) {
+            performSearch();
+        }
+
+    });
+
+});
+</script>
+
+                
+
+
+
+    <div class="site-menu">
+       
+            <div class="col-sm-12" style="border-top: 1px solid #d6d4d4; background: linear-gradient(to right, #fdbf0a 0%, #dfbc50 100%) !important;">
+                <div class="container">
+                    <nav id="site-navigation" class="main-nav primary-nav nav">
+                        <ul class="menu">
+                            <li class="active has-children">
+                                <a href="/" class="dropdown-toggle">
+                                 
+                                <i class="fa fa-home"></i></a>
+                            </li>
+
+                                    <li class="has-children">
+                                            <a href="#" class="dropdown-toggle text-white">About Us</a>
+                                            <ul class="sub-menu">
+                                                            <li><a href="/an-overview-of-oil-industry-safety-directorate" class="text-white">About Us</a></li>
+                                                            <li><a href="/resolution" class="text-white">Resolution</a></li>
+                                                            <li><a href="/gazette-notification" class="text-white">Gazette Notification</a></li>
+                                                            <li><a href="/our-vision-and-mission" class="text-white">Our Vision And Mission</a></li>
+                                                            <li><a href="/quality-policy" class="text-white">Quality Policy</a></li>
+                                                            <li><a href="/exploration-and-production-section" class="text-white">Activities</a></li>
+                                                            <li><a href="/performance-highlights" class="text-white">Performance</a></li>
+                                            </ul>
+                                    </li>
+                                    <li class="has-children">
+                                            <a href="#" class="dropdown-toggle text-white">OISD Standards</a>
+                                            <ul class="sub-menu">
+                                                            <li><a href="/oisd-standards-for-public-comments" class="text-white">OISD Standards for Public Comments</a></li>
+                                                            <li><a href="/oisd-standards" class="text-white">OISD Standards List</a></li>
+                                                            <li><a href="/purchase-of-standard" class="text-white">Purchase of Standards</a></li>
+                                                            <li><a href="https://www.oisd.gov.in/customerlogin" target="_blank" class="text-white">OISD Standard Access</a></li>
+                                                            <li><a href="/errata-and-updation" class="text-white">Errata and Updation</a></li>
+                                            </ul>
+                                    </li>
+                                    <li class="has-children">
+                                            <a href="#" class="dropdown-toggle text-white">Rules And Guidelines</a>
+                                            <ul class="sub-menu">
+                                                            <li><a href="/png-rules-2008" class="text-white">Exploration and Production</a></li>
+                                            </ul>
+                                    </li>
+                                    <li class="has-children">
+                                            <a href="#" class="dropdown-toggle text-white">Knowledge Resources</a>
+                                            <ul class="sub-menu">
+                                                            <li><a href="/suraksha-chetna" class="text-white">Suraksha Chetna</a></li>
+                                                            <li><a href="/case-studies" class="text-white">Case Studies</a></li>
+                                                            <li><a href="/safety-alert" class="text-white">Safety Alert</a></li>
+                                                            <li><a href="/suraksha-samwad" class="text-white">Suraksha Samwad</a></li>
+                                                            <li><a href="/internal-auditor-certification" class="text-white">Internal Auditor Certification</a></li>
+                                                            <li><a href="/working-group-report" class="text-white">Working Group Report</a></li>
+                                                            <li><a href="/workshop-on-hazards-and-safety-in-oil-gas-industries-23-25-feb-2026-at-iit-delhi" class="text-white">Workshop on Hazards and Safety in Oil  Gas Industries, 23-25 Feb 2026 at IIT Delhi</a></li>
+                                            </ul>
+                                    </li>
+                                    <li class="has-children">
+                                            <a href="#" class="dropdown-toggle text-white">Online Applications</a>
+                                            <ul class="sub-menu">
+                                                            <li><a href="https://www.connect.oisd.gov.in/OISDPortal/loginPage.do?loginFor=lic" target="_blank" class="text-white">ESA Recomm. Monitoring</a></li>
+                                                            <li><a href="https://www.connect.oisd.gov.in/OISDPortal/loginPage.do?loginFor=lic" target="_blank" class="text-white">Consent To Operate</a></li>
+                                                        <li>
+                                                            <a href="#" class="dropdown-toggle">PCSA</a>
+                                                            <ul class="sub-menu">
+                                                                        <li><a href="/pcsa-application-process-details">PCSA Application Process</a></li>
+                                                            </ul>
+                                                        </li>
+                                                            <li><a href="https://www.connect.oisd.gov.in/OISDPortal/loginPage.do?loginFor=lic" target="_blank" class="text-white">Online Incident Reporting</a></li>
+                                                            <li><a href="/incident-reporting-guidelines" class="text-white">Incident Reporting Guidelines</a></li>
+                                            </ul>
+                                    </li>
+                                    <li class="has-children">
+                                            <a href="#" class="dropdown-toggle text-white">Other Links</a>
+                                            <ul class="sub-menu">
+                                                            <li><a href="/right-to-information" class="text-white">RTI</a></li>
+                                                            <li><a href="/transparency-audit" class="text-white">Transparency Audit</a></li>
+                                                            <li><a href="https://pgportal.gov.in/" target="_blank" class="text-white">Public Grievances</a></li>
+                                                            <li><a href="/tenders" class="text-white">Tenders</a></li>
+                                                            <li><a href="/photos" class="text-white">Photos</a></li>
+                                                            <li><a href="/important-links" class="text-white">Important Links</a></li>
+                                                            <li><a href="https://forms.eduqfix.com/oisdnewform/add" target="_blank" class="text-white">Payment Link</a></li>
+                                            </ul>
+                                    </li>
+                                    <li class="has-children">
+                                                <a href="/contact-us">Contact Us</a>
+                                    </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        
+        <div class="col-sm-1 d-none" style="padding-right:0px;padding-left: 0px;">
+            <div class="mf-header-item-button extra-menu-item menu-item-search last-child">
+
+                <a href="#" class="toggle-search mf-btn"><i class="fa fa-search" aria-hidden="true"></i></a>
+<form action="/search-result" class="search-form" method="post">                    <input class="search-field" placeholder="Search..." value="" name="searchTerm" id="searchTerm" type="search">
+                    <input class="search-submit" value="Search" type="submit">
+</form>
+            </div>
+        </div>
+  
+</div>
+<div class="primary-mobile-nav header-v1" id="primary-mobile-nav" role="navigation">
+    <a href="#" class="close-canvas-mobile-panel">×</a>
+    <ul class="menu">
+        <li class="current-menu-item">
+            <a href="/" class="dropdown-toggle">Home</a>
+        </li>
+
+                <li class="menu-item-has-children">
+                        <a href="#" class="dropdown-toggle">About Us</a>
+                        <ul class="sub-menu">
+                                        <li><a href="/an-overview-of-oil-industry-safety-directorate">About Us</a></li>
+                                        <li><a href="/resolution">Resolution</a></li>
+                                        <li><a href="/gazette-notification">Gazette Notification</a></li>
+                                        <li><a href="/our-vision-and-mission">Our Vision And Mission</a></li>
+                                        <li><a href="/quality-policy">Quality Policy</a></li>
+                                        <li><a href="/exploration-and-production-section">Activities</a></li>
+                                        <li><a href="/performance-highlights">Performance</a></li>
+                        </ul>
+                </li>
+                <li class="menu-item-has-children">
+                        <a href="#" class="dropdown-toggle">OISD Standards</a>
+                        <ul class="sub-menu">
+                                        <li><a href="/oisd-standards-for-public-comments">OISD Standards for Public Comments</a></li>
+                                        <li><a href="/oisd-standards">OISD Standards List</a></li>
+                                        <li><a href="/purchase-of-standard">Purchase of Standards</a></li>
+                                        <li><a href="https://www.oisd.gov.in/customerlogin" target="_blank">OISD Standard Access</a></li>
+                                        <li><a href="/errata-and-updation">Errata and Updation</a></li>
+                        </ul>
+                </li>
+                <li class="menu-item-has-children">
+                        <a href="#" class="dropdown-toggle">Rules And Guidelines</a>
+                        <ul class="sub-menu">
+                                        <li><a href="/png-rules-2008">Exploration and Production</a></li>
+                        </ul>
+                </li>
+                <li class="menu-item-has-children">
+                        <a href="#" class="dropdown-toggle">Knowledge Resources</a>
+                        <ul class="sub-menu">
+                                        <li><a href="/suraksha-chetna">Suraksha Chetna</a></li>
+                                        <li><a href="/case-studies">Case Studies</a></li>
+                                        <li><a href="/safety-alert">Safety Alert</a></li>
+                                        <li><a href="/suraksha-samwad">Suraksha Samwad</a></li>
+                                        <li><a href="/internal-auditor-certification">Internal Auditor Certification</a></li>
+                                        <li><a href="/working-group-report">Working Group Report</a></li>
+                                        <li><a href="/workshop-on-hazards-and-safety-in-oil-gas-industries-23-25-feb-2026-at-iit-delhi">Workshop on Hazards and Safety in Oil  Gas Industries, 23-25 Feb 2026 at IIT Delhi</a></li>
+                        </ul>
+                </li>
+                <li class="menu-item-has-children">
+                        <a href="#" class="dropdown-toggle">Online Applications</a>
+                        <ul class="sub-menu">
+                                        <li><a href="https://www.connect.oisd.gov.in/OISDPortal/loginPage.do?loginFor=lic" target="_blank">ESA Recomm. Monitoring</a></li>
+                                        <li><a href="https://www.connect.oisd.gov.in/OISDPortal/loginPage.do?loginFor=lic" target="_blank">Consent To Operate</a></li>
+                                    <li>
+                                        <a href="#" class="dropdown-toggle">PCSA</a>
+                                        <ul class="sub-menu">
+                                                    <li><a href="/pcsa-application-process-details">PCSA Application Process</a></li>
+                                        </ul>
+                                    </li>
+                                        <li><a href="https://www.connect.oisd.gov.in/OISDPortal/loginPage.do?loginFor=lic" target="_blank">Online Incident Reporting</a></li>
+                                        <li><a href="/incident-reporting-guidelines">Incident Reporting Guidelines</a></li>
+                        </ul>
+                </li>
+                <li class="menu-item-has-children">
+                        <a href="#" class="dropdown-toggle">Other Links</a>
+                        <ul class="sub-menu">
+                                        <li><a href="/right-to-information">RTI</a></li>
+                                        <li><a href="/transparency-audit">Transparency Audit</a></li>
+                                        <li><a href="https://pgportal.gov.in/" target="_blank">Public Grievances</a></li>
+                                        <li><a href="/tenders">Tenders</a></li>
+                                        <li><a href="/photos">Photos</a></li>
+                                        <li><a href="/important-links">Important Links</a></li>
+                                        <li><a href="https://forms.eduqfix.com/oisdnewform/add" target="_blank">Payment Link</a></li>
+                        </ul>
+                </li>
+                <li class="menu-item-has-children">
+                            <a href="/contact-us">Contact Us</a>
+                </li>
+    </ul>
+</div>
+            </div>
+        </header>
+        
+<section class="breadcrumb-area">
+<div class="page-header has-image">
+    <div class="page-header-content">
+        <div class="featured-image"></div>
+        <div class="container">
+            
+        </div>
+    </div>
+</div>
+
+</section>
+<section class="service-container">
+    <div class="container  border-body">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="jumbotron text-center">
+                    <h1 class="jumbo-heading-sm">404</h1>
+                    <h2 class="NotFoundPageMargin-Bottom"><b>Sorry the page you are looking for does not exist</b></h2>
+                    <p><a class="btn btn-danger btn-lg" href="/">Go Back to Home</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+        <!-- footer -->
+        
+
+
+        <!-- footer end -->
+        <!-- copyright -->
+
+        
+
+
+
+
+<style>
+    .site-footer {
+        background: #000;
+        color: #fff;
+    }
+
+
+    .footer-nav {
+        background: #111;
+    }
+
+    .footer-menu {
+        list-style: none;
+        margin: 0;
+        padding: 10px 0;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 50px;
+    }
+
+        .footer-menu li a {
+            color: #fff;
+            font-size: 15px;
+            text-decoration: none;
+            font-weight: 500;
+            font-family: 'Sans Serif Collection';
+        }
+
+    /* BOTTOM FIX */
+    .footer-bottom {
+        background: #1a1a1a;
+        font-size: 10px;
+        padding: 8px 0;
+        color: #fff;
+    }
+
+    .footer-bottom-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 10px;
+    }
+
+    .footer-bottom-left,
+    .footer-bottom-right {
+        white-space: nowrap;
+        font-size: 10px;
+    }
+
+    .footer-bottom a {
+        color: #fff !important;
+        text-decoration: underline !important;
+    }
+
+    .footer-top {
+        padding: 0px 0 0px 0px;
+        background: url(../content/images/carousel-bg.png) repeat;
+        border-top: 1px solid #d2d2d2;
+        margin-top: 2%;
+    }
+
+    .logo-slider {
+        display: flex;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+    }
+
+    .logo-item {
+        flex: 0 0 16.5%;
+        max-width: 16.5%;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    .footer-logo {
+        width: 100%;
+        max-height: 150px;
+        object-fit: contain;
+    }
+
+
+    .slider-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 100;
+        /*        width: 40px;
+        height: 40px;*/
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: #000c;
+        cursor: pointer;
+        font-size: 25px;
+    }
+
+    .prev-btn {
+        left: 0;
+    }
+
+    .next-btn {
+        right: 0;
+    }
+
+    @media(max-width:768px) {
+
+        .logo-item {
+            flex: 0 0 33.33%;
+            max-width: 33.33%;
+        }
+
+        .footer-logo {
+            max-height: 45px;
+        }
+    }
+
+   
+    @media(max-width:576px) {
+
+        .logo-item {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+
+        .footer-logo {
+            max-height: 35px;
+        }
+    }
+    @media (max-width: 768px) {
+        .footer-bottom-inner {
+            flex-wrap: wrap;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .footer-bottom-left,
+        .footer-bottom-right {
+            white-space: normal;
+            font-size: 5px !important;
+        }
+    }
+</style>
+
+<footer class="site-footer">
+
+
+    <div class="footer-top">
+        <div class="container position-relative">
+
+            <button class="slider-btn prev-btn" id="prevBtn">
+                &#10094;
+            </button>
+
+            
+            <div class="logo-slider" id="logoSlider">
+
+                <div class="logo-item">
+                    <img src="https://oisd.gov.in/Content/Images/FooterImage/digital-india.png" class="footer-logo">
+                </div>
+
+                <div class="logo-item">
+                    <img src="https://oisd.gov.in/Content/Images/FooterImage/makeinindia.png" class="footer-logo">
+                </div>
+
+                <div class="logo-item">
+                    <img src="https://oisd.gov.in/Content/Images/FooterImage/india-gov.png" class="footer-logo">
+                </div>
+                <div class="logo-item">
+                    <img src="https://oisd.gov.in/Content/Images/FooterImage/goidirectory.png" class="footer-logo">
+                </div>
+                <div class="logo-item">
+                    <img src="https://oisd.gov.in/Content/Images/FooterImage/data-gov.png" class="footer-logo">
+                </div>
+
+                <div class="logo-item">
+                    <img src="https://oisd.gov.in/Content/Images/FooterImage/mygov.png" class="footer-logo">
+                </div>
+
+                <div class="logo-item">
+                    <img src="https://oisd.gov.in/Content/Images/FooterImage/digital-india.png" class="footer-logo">
+                </div>
+            </div>
+
+            
+            <button class="slider-btn next-btn" id="nextBtn">
+                &#10095;
+            </button>
+
+        </div>
+    </div>
+
+    <div class="footer-nav">
+        <div class="container-fluid">
+            <ul class="footer-menu">
+
+                                <li><a href="/website-policies">Website Policies</a></li>
+                                <li><a href="/help">Help</a></li>
+                                <li><a href="/contact-us">Contact Us</a></li>
+                                <li><a href="/terms-conditions">Terms and Conditions</a></li>
+                                <li><a href="/web-information-manager">Web Information Manager</a></li>
+                                <li><a href="/faq">FAQ</a></li>
+                                <li><a href="/disclaimer">Disclaimer</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <div class="container-fluid">
+            <div class="footer-bottom-inner">
+
+                <div class="footer-bottom-left">
+                    Content Owned &amp; Maintained
+                    <strong>Oil Industry Safety Directorate (OISD)</strong>
+                    , Developed By
+                    <a href="https://chasteritsolutions.com/" target="_blank">
+                        Chaster IT Solutions
+                    </a>
+                </div>
+
+                <div class="footer-bottom-right">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+</footer>
+
+<script>
+
+    const slider = document.getElementById("logoSlider");
+
+    const scrollAmount = 250;
+
+    document.getElementById("nextBtn").addEventListener("click", function () {
+
+        slider.scrollBy({
+            left: scrollAmount,
+            behavior: "smooth"
+        });
+
+        infiniteScroll();
+
+    });
+
+   
+    document.getElementById("prevBtn").addEventListener("click", function () {
+
+        slider.scrollBy({
+            left: -scrollAmount,
+            behavior: "smooth"
+        });
+
+    });
+
+ 
+    let autoSlide = setInterval(() => {
+
+        slider.scrollBy({
+            left: scrollAmount,
+            behavior: "smooth"
+        });
+
+        infiniteScroll();
+
+    }, 2500);
+
+
+    function infiniteScroll() {
+
+        setTimeout(() => {
+
+        }, 500);
+
+    }
+
+</script>
+
+
+        <!-- copyright end-->
+    </div>
+
+    <!--End pagewrapper-->
+    
+
+    <!--Scroll to top-->
+    <script type="text/javascript">
+        var selectedSize = '16px';
+
+        function setFontSize(value) {
+
+            var text = document.getElementById("text");
+
+            if (!text) {
+                console.log("Element #text not found");
+                return;
+            }
+
+            text.style.fontSize = value;
+
+            selectedSize = value;
+
+            localStorage.setItem('fontSize', value);
+        }
+
+
+        function fontSize(selectTag) {
+
+            setFontSize(selectTag);
+        }
+
+
+        function loadFont() {
+
+            var storedSize = localStorage.getItem('fontSize');
+
+            if (storedSize) {
+                setFontSizeWithoutSave(storedSize);
+            } else {
+                setFontSizeWithoutSave("16px");
+            }
+        }
+
+
+        function setFontSizeWithoutSave(value) {
+
+            var text = document.getElementById("text");
+
+            if (!text) return;
+
+            text.style.fontSize = value;
+            selectedSize = value;
+        }
+
+
+        function set_font_size(action) {
+
+            var text = document.getElementById("text");
+
+            if (!text) {
+                return;
+            }
+
+            var currentSize = parseFloat(
+                window.getComputedStyle(text).fontSize
+            );
+
+            var newSize = currentSize;
+
+
+            if (action === "increase") {
+
+                newSize = currentSize + 2;
+
+                if (newSize > 24) {
+                    newSize = 24;
+                }
+            }
+            else if (action === "decrease") {
+
+                newSize = currentSize - 2;
+
+                if (newSize < 12) {
+                    newSize = 12;
+                }
+            }
+            else {
+
+                newSize = 16;
+            }
+
+
+            setFontSize(newSize + "px");
+        }
+
+
+        $(document).ready(function () {
+
+            loadFont();
+
+        });
+    </script>
+
+    <a id="scroll-top" class="backtotop" href=""><i class="fa fa-angle-up"></i></a>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-124179968-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'UA-124179968-1');
+    </script>
+
+    <script src="/bundles/jquery?v=IRHcGFRL5FLrhIhj2-D6Aw8XvDL4MktNIDmAu6ExixE1"></script>
+
+    <script src="/bundles/bootstrap?v=ezQBMoTC2rv86uasAM_gyE-5HsVxA7JCro3kOBNn4CQ1"></script>
+
+    <link href="https://oisd.gov.in/ContentHome/DataTablemin.css" rel="stylesheet" />
+    <script src="https://oisd.gov.in/Scripts/datatable.js"></script>
+    
+
+    <script type="text/javascript">
+        function changeHashOnLoad() {
+            window.location.href += "#";
+            setTimeout("changeHashAgain()", "50");
+        }
+
+        function changeHashAgain() {
+            window.location.href += "1";
+        }
+
+        var storedHash = window.location.hash;
+        window.setInterval(function () {
+            if (window.location.hash != storedHash) {
+                window.location.hash = storedHash;
+            }
+        }, 50);
+    </script>
+    <script type="text/javascript">
+        function preventBack() { window.history.forward(); }
+        setTimeout("preventBack()", 0);
+        window.onunload = function () { null };
+    </script>
+    <script type="text/javascript">
+        function preventBack() { window.history.forward(); }
+        setTimeout("preventBack()", 0);
+        window.onunload = function () { null };
+    </script>
+
+    <script type="text/javascript">
+        document.addEventListener("contextmenu", function (e) {
+            e.preventDefault(); // Prevent the default right-click context menu
+        });
+        $(document).keydown(function (event) {
+            if (event.keyCode == 123) { // Prevent F12
+                return false;
+            } else if (event.ctrlKey && event.shiftKey && event.keyCode == 73) { // Prevent Ctrl+Shift+I
+                return false;
+            }
+        });
+    </script>
+    <script>
+        $(document).on("click", "#mf-navbar-toggle", function (e) {
+            e.preventDefault();
+
+            $(".site-menu").toggleClass("open");
+        });
+    </script>
+</body>
+</html>
