@@ -9,14 +9,18 @@ export default function NetworkMonitor() {
   const [log, setLog] = useState(INIT_LOG)
   const [artifacts, setArtifacts] = useState([])
   const fetchingRef = useRef(false)
+  const backoffRef  = useRef(5000)   // start at 5 s
+  const timerRef    = useRef(null)
 
   const fetchStats = async () => {
     if (fetchingRef.current) return
     fetchingRef.current = true
     try {
       const r = await fetch('/api/network/stats')
+      if (!r.ok) throw new Error('not ok')
       const d = await r.json()
       setStats(d)
+      backoffRef.current = 5000   // reset on success
       if (d.recent_log?.length) {
         const mapped = d.recent_log.slice(-5).map(e => ({
           type: e.external ? 'WARN' : 'CALL',
@@ -26,23 +30,36 @@ export default function NetworkMonitor() {
         }))
         setLog(mapped.length ? mapped : INIT_LOG)
       }
-    } catch {}
-    finally { fetchingRef.current = false }
+    } catch {
+      // Backend not running — slow down polling (max 60 s) to avoid console spam
+      backoffRef.current = Math.min(backoffRef.current * 2, 60000)
+    } finally { fetchingRef.current = false }
   }
 
   const fetchArtifacts = async () => {
     try {
       const r = await fetch('/api/documents/list')
+      if (!r.ok) throw new Error('not ok')
       const d = await r.json()
       setArtifacts((d.files || []).slice(0, 3))
     } catch {}
   }
 
   useEffect(() => {
+    const schedule = () => {
+      timerRef.current = setTimeout(async () => {
+        await fetchStats()
+        await fetchArtifacts()
+        schedule()   // reschedule with updated backoff
+      }, backoffRef.current)
+    }
+
+    // Initial load
     fetchStats()
     fetchArtifacts()
-    const id = setInterval(() => { fetchStats(); fetchArtifacts() }, 5000)
-    return () => clearInterval(id)
+    schedule()
+
+    return () => clearTimeout(timerRef.current)
   }, [])
 
   const extCalls = stats?.external_calls ?? 0
