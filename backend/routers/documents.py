@@ -165,37 +165,51 @@ def build_pptx(title: str, content: str) -> Path:
     p3.alignment = PP_ALIGN.CENTER
 
     # --- Content Slides ---
-    sections = re.split(r'\n##\s+', content)
-    for section in sections:
-        section = section.strip()
-        if not section:
-            continue
+    import json
+    
+    # Try to parse the content as JSON. If the LLM wrapped it in markdown code blocks, strip them.
+    json_str = content.strip()
+    if json_str.startswith("```json"):
+        json_str = json_str[7:]
+    elif json_str.startswith("```"):
+        json_str = json_str[3:]
+    if json_str.endswith("```"):
+        json_str = json_str[:-3]
+    json_str = json_str.strip()
 
-        lines = section.split("\n", 1)
-        heading = lines[0].lstrip("#").strip()
-        body = lines[1].strip() if len(lines) > 1 else ""
+    try:
+        slides_data = json.loads(json_str)
+        if not isinstance(slides_data, list):
+            slides_data = [slides_data]
+    except Exception as e:
+        # Fallback if JSON parsing fails completely
+        slides_data = [{"title": "Parsing Error", "bullet_points": ["Failed to parse JSON response.", str(e)]}]
+
+    for slide_obj in slides_data:
+        title_text = slide_obj.get("title", "Untitled Slide")
+        bullet_points = slide_obj.get("bullet_points", [])
 
         slide = prs.slides.add_slide(prs.slide_layouts[6])
         bg = slide.background.fill
         bg.solid()
         bg.fore_color.rgb = PptxRGB(0x0D, 0x1B, 0x2A)
 
-        # Heading
+        # Title shape
         txBox = slide.shapes.add_textbox(PptxInches(0.8), PptxInches(0.5), PptxInches(11.5), PptxInches(1))
         tf = txBox.text_frame
         p = tf.paragraphs[0]
-        p.text = heading
+        p.text = title_text
         p.font.size = PptxPt(28)
         p.font.bold = True
         p.font.color.rgb = PptxRGB(0xA7, 0xC8, 0xFF)
 
-        # Body
-        if body:
+        # Content shape (bullets)
+        if bullet_points:
             txBox2 = slide.shapes.add_textbox(PptxInches(0.8), PptxInches(1.8), PptxInches(11.5), PptxInches(5))
             tf2 = txBox2.text_frame
             tf2.word_wrap = True
-            for i, bullet in enumerate(body.split("\n")):
-                bullet = bullet.strip().lstrip("-•* ")
+            for i, bullet in enumerate(bullet_points):
+                bullet = str(bullet).strip()
                 if not bullet:
                     continue
                 p = tf2.paragraphs[0] if i == 0 else tf2.add_paragraph()

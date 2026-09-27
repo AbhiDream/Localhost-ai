@@ -388,7 +388,18 @@ async def document_drafting_node(state: WorkbenchState) -> WorkbenchState:
         parts.append(f"[Knowledge Base]:\n{rag_context}")
     evidence = "\n\n---\n\n".join(parts)
 
-    if evidence:
+    from routers.agent import detect_artifact_type
+    art_type = detect_artifact_type(state["user_prompt"])
+
+    if art_type == "pptx":
+        sys_msg = SystemMessage(
+            content=f"{summary_text}You are an expert presentation generator. "
+            "Output STRICTLY a JSON array of slide objects. Do not include any conversational text. "
+            "Schema: [{\"slide_number\": 1, \"title\": \"Slide Title\", \"bullet_points\": [\"Point 1\", \"Point 2\"]}]\n"
+            "Do NOT use Markdown, asterisks, or LaTeX/Math symbols. Use plain text only.\n"
+            f"Use the following evidence if available:\n{evidence}"
+        )
+    elif evidence:
         sys_msg = SystemMessage(
             content=f"{summary_text}You are LocalHost.AI preparing an internal industrial document. "
             "Use ONLY the EVIDENCE below. Do not invent measurements or dates. "
