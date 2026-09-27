@@ -94,7 +94,33 @@ export default function ChatPanel({ session, onActiveModelChange, onRename }) {
   })
 
   useEffect(() => {
-    localStorage.setItem(`chat_messages_${session.id}`, JSON.stringify(messages))
+    try {
+      // Strip base64 attachment data before saving — PDFs/images blow the 5MB quota
+      const safe = messages.slice(-30).map(m => ({
+        ...m,
+        attachment: m.attachment
+          ? { name: m.attachment.name, type: m.attachment.type }  // keep only metadata
+          : undefined,
+        // Cap long AI responses stored in localStorage
+        content: typeof m.content === 'string' ? m.content.slice(0, 4000) : m.content,
+      }))
+      localStorage.setItem(`chat_messages_${session.id}`, JSON.stringify(safe))
+    } catch (e) {
+      // Quota exceeded — silently skip; clear old sessions if needed
+      try {
+        Object.keys(localStorage)
+          .filter(k => k.startsWith('chat_messages_') && k !== `chat_messages_${session.id}`)
+          .slice(0, 3)
+          .forEach(k => localStorage.removeItem(k))
+        // Retry with just the last 10 messages
+        const minimal = messages.slice(-10).map(m => ({
+          ...m,
+          attachment: undefined,
+          content: typeof m.content === 'string' ? m.content.slice(0, 1000) : m.content,
+        }))
+        localStorage.setItem(`chat_messages_${session.id}`, JSON.stringify(minimal))
+      } catch { /* give up silently */ }
+    }
   }, [messages, session.id])
   const [input, setInput] = useState('')
   const [generating, setGenerating] = useState(false)
