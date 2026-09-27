@@ -1,0 +1,86 @@
+# LocalHost.AI: Comprehensive Project Overview
+
+LocalHost.AI is an on-premises, air-gapped artificial intelligence workbench tailored for industrial and enterprise environments (like MRPL). Its primary objective is to provide powerful AI capabilities—such as drafting reports, analyzing engineering data, writing code, and processing images—without any data ever leaving the local network. Zero external API calls are made, ensuring complete data sovereignty.
+
+---
+
+## 1. Core Architecture & Tech Stack
+
+The platform uses a decoupled frontend-backend architecture, communicating primarily through REST APIs and Server-Sent Events (SSE) for real-time streaming.
+
+### Frontend
+- **Framework:** React 19 + Vite.
+- **Styling:** TailwindCSS (v4) for responsive, utility-first UI design.
+- **Typography & Icons:** Google Material Symbols, Inter, and JetBrains Mono.
+- **Markdown & Math Rendering:** `react-markdown` paired with `rehype-katex` and `remark-math` to natively render complex LaTeX engineering formulas and code blocks.
+- **Network Monitoring:** Custom built-in polling system to monitor local backend health and Ollama resource usage, complete with exponential backoff for offline resilience.
+
+### Backend
+- **Framework:** FastAPI running on Uvicorn (Python 3.13). High-performance, asynchronous routing.
+- **AI Orchestration:** LangGraph (by LangChain) to manage stateful, multi-agent workflows.
+- **Local LLM Engine:** Ollama serves the models locally over HTTP (`localhost:11434`).
+- **RAG & Vector Database:** ChromaDB stores embeddings for document retrieval. `sentence-transformers` generates the vector embeddings.
+- **Document Generation:** `python-docx` (Word), `python-pptx` (PowerPoint), and `openpyxl` (Excel) are used to dynamically generate downloadable artifacts.
+- **OCR & Vision:** `easyocr` and `pdfplumber` for extracting text from PDFs and images.
+
+### AI Models Used (via Ollama)
+1. **Phi-3.5 Mini:** Serves as the primary "reasoning" and "drafting" model due to its high efficiency and strong logic capabilities.
+2. **Qwen 2.5 Coder (3B):** Specialized model dedicated exclusively to generating, reviewing, and fixing Python/C/JS code.
+3. **LLaVA-Phi3:** Multimodal vision model used for analyzing uploaded images and P&ID (Piping and Instrumentation) diagrams.
+
+---
+
+## 2. Algorithmic Workflow (The LangGraph Pipeline)
+
+The brain of LocalHost.AI is built on **LangGraph**, representing the AI workflow as a State Machine. Here is the step-by-step algorithm of how a user request is processed:
+
+### Step 1: State Initialization & History Trimming
+When a user sends a prompt (along with any PDFs or images), the backend constructs a `WorkbenchState` object containing the conversation history. A context-trimming algorithm ensures the LLM doesn't run out of memory by keeping only the last 6 turns (or summarizing older history if it gets too long).
+
+### Step 2: Intent Routing (`router_node`)
+Instead of wasting a heavy LLM call just to decide what to do, the system uses a **Fast Keyword & Context Router**.
+- It analyzes the user's prompt and recent context.
+- Calculates a "code score" vs "document score" based on keywords (e.g., "calculate", "LMTD", "report", "summarize").
+- **Classification:** It routes the graph to one of three paths:
+  1. `code_execution`
+  2. `vision_analysis`
+  3. `document_drafting`
+
+### Step 3: Specialized Execution Nodes
+Depending on the route, a specific agent takes over:
+
+* **Path A: Code Execution (`code_execution_node`)**
+  - Routes the prompt to **Qwen 2.5 Coder**.
+  - Extracts the generated code (detecting Python, C, C++, JS, or Java).
+  - **The Sandbox Algorithm:** Python code is injected into an isolated `subprocess` (the Sandbox) and executed locally with a timeout. 
+  - **Self-Correction Loop:** If the sandbox throws an error (e.g., `NameError` or `SyntaxError`), the graph dynamically loops *back* to the Qwen coder, feeding it the `stderr` traceback. The LLM attempts to fix its own code up to 2 times (`MAX_RETRIES`) before giving up.
+
+* **Path B: Document Drafting (`document_drafting_node`)**
+  - Extracts text from any attached PDFs using `pdfplumber`.
+  - Performs a RAG (Retrieval-Augmented Generation) query against ChromaDB to fetch relevant industrial guidelines.
+  - Combines the user prompt, PDF text, and RAG context into a strict System Prompt.
+  - Feeds it to **Phi-3.5 Mini** to generate the report.
+  - If a PowerPoint is requested, it forces the LLM to output a strict JSON array representing slides, circumventing Markdown parsing issues.
+
+* **Path C: Vision Analysis (`vision_analysis_node`)**
+  - Feeds the base64 image directly to the **LLaVA** model to extract visual data.
+
+### Step 4: Artifact Generation & Formatting (`output_node`)
+- The system intercepts the final AI response.
+- If the user requested a specific format (e.g., "export as presentation"), it triggers the artifact builders (`python-pptx`, `python-docx`).
+- For PPTX, it parses the JSON array generated by the LLM and programmatically creates slides.
+
+### Step 5: Real-time Streaming (SSE)
+Throughout the entire graph execution, the backend uses **Server-Sent Events (SSE)**.
+- It yields "Phase Events" (e.g., *[Running code in Sandbox...]*, *[Analyzing vision context...]*) so the React frontend can show a dynamic progress spinner.
+- Once the final text is ready, it streams the response word-by-word to create a fluid typewriter effect for the user.
+- Finally, it delivers the Sandbox `stdout` or download links for the generated artifacts.
+
+---
+
+## 3. Key Differentiators & Highlights
+
+1. **Air-Gapped Sovereignty:** Operates 100% locally. No OpenAI, no cloud APIs. Perfect for enterprise sectors handling confidential process data.
+2. **Autonomous Self-Correction:** The AI doesn't just write code; it tests it. If the math/engineering script fails, it reads the error and rewrites the code automatically.
+3. **Smart Artifact Generation:** Dynamically builds native `.docx` and `.pptx` files on the fly without relying on fragile markdown converters.
+4. **Resilient Frontend:** The UI gracefully handles backend restarts, implements exponential backoff for network polling, and intercepts browser crashes via Error Boundaries.
